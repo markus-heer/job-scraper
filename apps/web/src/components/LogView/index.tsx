@@ -16,12 +16,13 @@ import { useLogStream } from './use-log-stream';
  *
  * Four blocks, each the whole of one acceptance criterion:
  *
- * - **The message list (12.2, 12.3).** Every status message the Scrape_Run has produced, in
- *   ascending order of creation. The order is not sorted here and must not be: `useLogStream`
- *   appends only above the highest sequence it holds, and that sequence is the server's own order of
- *   creation — strictly monotonic and gapless per Scrape_Run. Sorting the list again in the view
- *   would hide a hole rather than show it. "At least the last 500" is the server's default `limit`
- *   on `logMessages`, which is why no such number appears anywhere on this side.
+ * - **The message list (12.2, 12.3).** Every status message the Scrape_Run has produced, shown
+ *   newest first. `useLogStream` holds the list in ascending order of creation and that held order
+ *   is never sorted: it appends only above the highest sequence it holds, and that sequence is the
+ *   server's own order of creation — strictly monotonic and gapless per Scrape_Run. The view
+ *   reverses a copy of that list for display only, so the newest line is on top while a hole in the
+ *   sequence still shows rather than being sorted away. "At least the last 500" is the server's
+ *   default `limit` on `logMessages`, which is why no such number appears anywhere on this side.
  * - **"Suchlauf abbrechen" (12.6).** Mounted next to the list, which is where 12.6 puts it, and only
  *   while the Scrape_Run is running — a finished run has nothing to cancel, and 12.14 would answer
  *   the press with a rejection.
@@ -101,9 +102,19 @@ export function LogView({ runId }: LogViewProps) {
             </tr>
           </thead>
           <tbody>
-            {messages.map((message) => (
-              <LogLine key={`${message.runId}-${String(message.sequence)}`} message={message} />
-            ))}
+            {/*
+              12.2 reversed for display: the newest line stays on top. `useLogStream` still hands
+              the list over in ascending creation order — the server's strictly monotonic, gapless
+              sequence — and that order is not touched. Only the render is reversed, on a copy, so a
+              hole in the sequence still shows rather than being sorted away. Reversing the sequence
+              order is reversing the creation-date order, because the sequence rises with createdAt.
+            */}
+            {messages
+              .slice()
+              .reverse()
+              .map((message) => (
+                <LogLine key={`${message.runId}-${String(message.sequence)}`} message={message} />
+              ))}
           </tbody>
         </table>
       )}

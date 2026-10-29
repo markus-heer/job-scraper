@@ -127,9 +127,9 @@ describe('the Log_View overlay across a broken transmission', () => {
     await settle();
 
     expect(messageTexts()).toEqual([
-      'Suchlauf gestartet.',
-      'Stepstone: Abfrage gestartet.',
       'Stepstone: 1 Seite gelesen.',
+      'Stepstone: Abfrage gestartet.',
+      'Suchlauf gestartet.',
     ]);
 
     // The transmission breaks, and the Scraper_Service keeps writing while it is down (12.8). The
@@ -149,14 +149,14 @@ describe('the Log_View overlay across a broken transmission', () => {
 
     await settle(LOG_STREAM_RECONNECT_DELAY_MS);
 
-    // 12.9 as the user sees it: the two messages of the downtime stand at the end of the list, in
-    // creation order, and they arrived over the history query — the only thing that ran in between.
+    // 12.9 as the user sees it: the two messages of the downtime are the newest, so they stand at
+    // the top, and they arrived over the history query — the only thing that ran in between.
     expect(messageTexts()).toEqual([
-      'Suchlauf gestartet.',
-      'Stepstone: Abfrage gestartet.',
-      'Stepstone: 1 Seite gelesen.',
-      'Stepstone: 2 Seiten gelesen.',
       'Stepstone: abgeschlossen.',
+      'Stepstone: 2 Seiten gelesen.',
+      'Stepstone: 1 Seite gelesen.',
+      'Stepstone: Abfrage gestartet.',
+      'Suchlauf gestartet.',
     ]);
     expect(link.historyCalls).toEqual([
       { runId: RUNNING_RUN_ID, afterSequence: 0 },
@@ -174,15 +174,15 @@ describe('the Log_View overlay across a broken transmission', () => {
       link.emit(message(6, { platform: null, messageDe: 'Suchlauf abgeschlossen.' }));
     });
 
-    // Complete and without duplication: one row per message, still in creation order. Dropped by
-    // sequence, which is why the identical text of the replay does not produce a second row.
+    // Complete and without duplication: one row per message, newest first. Dropped by sequence,
+    // which is why the identical text of the replay does not produce a second row.
     expect(messageTexts()).toEqual([
-      'Suchlauf gestartet.',
-      'Stepstone: Abfrage gestartet.',
-      'Stepstone: 1 Seite gelesen.',
-      'Stepstone: 2 Seiten gelesen.',
-      'Stepstone: abgeschlossen.',
       'Suchlauf abgeschlossen.',
+      'Stepstone: abgeschlossen.',
+      'Stepstone: 2 Seiten gelesen.',
+      'Stepstone: 1 Seite gelesen.',
+      'Stepstone: Abfrage gestartet.',
+      'Suchlauf gestartet.',
     ]);
   });
 
@@ -254,11 +254,11 @@ describe('the Log_View overlay across a broken transmission', () => {
     expect(link.historyCalls.at(-1)).toEqual({ runId: RUNNING_RUN_ID, afterSequence: 3 });
     expect(link.openStreamCount).toBe(1);
     expect(messageTexts()).toEqual([
-      'Suchlauf gestartet.',
-      'Stepstone: Abfrage gestartet.',
-      'Stepstone: 1 Seite gelesen.',
-      'Jobvector: Abfrage gestartet.',
       'Jobvector: abgeschlossen.',
+      'Jobvector: Abfrage gestartet.',
+      'Stepstone: 1 Seite gelesen.',
+      'Stepstone: Abfrage gestartet.',
+      'Suchlauf gestartet.',
     ]);
     expect(screen.queryByText(de.log.connection.exhausted)).toBeNull();
     expect(screen.queryByRole('button', { name: de.log.connection.reconnectAction })).toBeNull();
