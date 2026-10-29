@@ -1,0 +1,62 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", "build/**"]
+    },
+    "check-types": {
+      "dependsOn": ["^build"]
+    },
+    "test": {
+      "dependsOn": ["^build"]
+    },
+    "lint": {
+      "dependsOn": ["^build"]
+    },
+
+    "@job-scraper/api#schema:generate": {
+      "dependsOn": ["build"],
+      "outputs": ["src/schema.gql"]
+    },
+
+    "codegen": {
+      "dependsOn": ["@job-scraper/api#schema:generate"],
+      "outputs": ["src/**/*.generated.ts"]
+    },
+
+    "@job-scraper/web#build": {
+      "dependsOn": ["^build", "codegen"],
+      "outputs": ["dist/**"]
+    },
+    "@job-scraper/web#check-types": {
+      "dependsOn": ["^build", "codegen"]
+    },
+    "@job-scraper/web#test": {
+      "dependsOn": ["^build", "codegen"]
+    },
+    "@job-scraper/web#lint": {
+      "dependsOn": ["^build", "codegen"]
+    },
+    "test:integration": {
+      "dependsOn": ["^build"],
+      "cache": false
+    },
+    "test:e2e": {
+      "dependsOn": ["^build"],
+      "cache": false
+    },
+    "test:live": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "env": [
+        "SCRAPER_LIVE_SMOKE",
+        "USER_AGENT_CONTACT",
+        "RELEVANCE_LIVE_SMOKE",
+        "ANTHROPIC_API_KEY",
+        "ROUTING_LIVE_SMOKE",
+        "ROUTING_API_KEY"
+      ]
+    }
+  }
+}

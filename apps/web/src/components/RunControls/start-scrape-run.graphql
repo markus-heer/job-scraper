@@ -1,0 +1,28 @@
+# Starting a Scrape_Run from the Web_App (12.1, 12.5, 12.13).
+#
+# One mutation for three outcomes, which is why all three fields of the payload are selected: the
+# API_Service answers every one of them with a payload rather than with an exception, so the Web_App
+# tells them apart by reading, not by catching.
+#
+# | `runId` | `alreadyRunning` | What happened                                                     |
+# | ------- | ---------------- | ----------------------------------------------------------------- |
+# | set     | `false`          | A Scrape_Run was created and is running (12.1).                   |
+# | set     | `true`           | One was already running; no second one was created (12.5).        |
+# | `null`  | `false`          | No Scrape_Run could be created (12.13).                           |
+#
+# `hintDe` is the German sentence of the second and third row, worded by the API_Service because it
+# explains server state — "Es läuft bereits ein Suchlauf." for 12.5 and the cause of 12.13 with its
+# one recommended next step (2.5). It is rendered unchanged; `src/i18n/de.ts` holds no copy of
+# either, and `de.log.startRunDisabledHint` is the Web_App's own sentence for the *other* situation,
+# where the user has not pressed anything and the running Scrape_Run is simply reported.
+#
+# `runId` is what makes the hint actionable: it identifies the Scrape_Run to follow, so the control
+# can offer the way into the Log_View of exactly that run — the one the user wanted to start as well
+# as the one that was already running.
+mutation StartScrapeRun {
+  startScrapeRun {
+    runId
+    alreadyRunning
+    hintDe
+  }
+}

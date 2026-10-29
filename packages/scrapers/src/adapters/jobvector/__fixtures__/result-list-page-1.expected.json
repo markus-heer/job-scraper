@@ -1,0 +1,52 @@
+{
+  "case": "result-list-page-1",
+  "provenance": "HAND_AUTHORED",
+  "description": "first Result_Page with four readable Job_Posting in schema.org microdata and a further page offered",
+  "pageNumber": 1,
+  "response": {
+    "status": 200,
+    "headers": {}
+  },
+  "outcome": "POSTINGS",
+  "platformStatus": "PAGE_LIMIT_REACHED",
+  "hasNextPage": true,
+  "readablePostingCount": 4,
+  "postings": [
+    {
+      "postingId": "412345",
+      "title": "Projektmanagerin Pharma (m/w/d)",
+      "employer": "Beispiel Pharma GmbH",
+      "workLocation": "München",
+      "publishedAtText": "2026-10-24",
+      "sourceUrl": "https://www.jobvector.de/jobs/?jobId=412345",
+      "descriptionText": "Sie steuern klinische Entwicklungsprojekte von der Planung bis zur Zulassung und koordinieren interne wie externe Projektbeteiligte."
+    },
+    {
+      "postingId": "412346",
+      "title": "Senior Projektmanagerin Life Science (m/w/d)",
+      "employer": "Muster Biotech AG",
+      "workLocation": "München, Garching",
+      "publishedAtText": "2026-10-26",
+      "sourceUrl": "https://www.jobvector.de/jobs/?jobId=412346",
+      "descriptionText": "Für unsere Entwicklungsabteilung suchen wir eine erfahrene Projektmanagerin mit Erfahrung in GMP-regulierten Umgebungen."
+    },
+    {
+      "postingId": "412347",
+      "title": "Projektleiterin Pharmaproduktion (m/w/d)",
+      "employer": "Alpha Labs SE",
+      "workLocation": "Martinsried bei München",
+      "publishedAtText": "vor 6 Tagen",
+      "sourceUrl": "https://www.jobvector.de/stellenangebote/412347-projektleiterin-pharmaproduktion/",
+      "descriptionText": "Sie verantworten Technologietransfers zwischen Entwicklung und Produktion und führen ein interdisziplinäres Projektteam."
+    },
+    {
+      "postingId": "412348",
+      "title": "Project Manager Clinical Operations (f/m/d)",
+      "employer": "Gamma Pharma Services GmbH",
+      "workLocation": "München (hybrid)",
+      "publishedAtText": "2026-10-18",
+      "sourceUrl": "https://www.jobvector.de/en/jobs/?jobId=412348",
+      "descriptionText": "You plan and oversee multinational clinical studies and report directly to the Head of Clinical Operations."
+    }
+  ]
+}

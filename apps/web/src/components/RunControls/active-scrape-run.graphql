@@ -1,0 +1,38 @@
+# The Scrape_Run that is running right now, or null while none is (2.7, 12.1, 12.5).
+#
+# This one answer carries both halves of what the run controls need. Whether it is null decides
+# whether "Suchlauf starten" is offered or marked as disabled (2.7), and the fields of a non-null
+# answer are the numbers the German status display of 2.7 states: `startedAt` is what the runtime is
+# measured from, and `platformResults` is how many Platform the Scrape_Run has already finished.
+#
+# `status` is selected although `activeScrapeRun` returns a running Scrape_Run by definition. The
+# control asserts on it rather than on the nullability alone, so that a Scrape_Run which the
+# API_Service reports for any other reason can never silently disable the start control — the one
+# control Requirement 2.2 asks to be permanently available.
+#
+# `platformResults` is the progress signal and not a summary here: the API_Service upserts one row
+# per Platform when that Platform's retrieval *ends*, so the number of rows grows over the run and
+# is exactly "how many are done". The per-Platform Platform_Status, counters and the Partial_Result
+# marking belong to the end-of-run summary of 12.10 and are selected by task 18.3, not here — the
+# running display states progress, not results. `id` is selected because without it the rows are
+# unkeyed objects in the cache, and `platform` because it is what makes a row a Platform rather than
+# a count (and what a later display of "which one is still outstanding" would read).
+#
+# `finishedAt` and `runOutcome` are deliberately absent. A running Scrape_Run has neither (both are
+# null until it ends, 11.1), and the end of the run reaches this query as `activeScrapeRun: null` on
+# the next poll rather than as a filled end time.
+#
+# The operation takes no variables, so every reader of it shares one cache entry and one request:
+# the landing page and the posting overview both render the start control, and the Log_View of task
+# 18.3 can mount the cancel control against the same answer.
+query ActiveScrapeRun {
+  activeScrapeRun {
+    id
+    status
+    startedAt
+    platformResults {
+      id
+      platform
+    }
+  }
+}

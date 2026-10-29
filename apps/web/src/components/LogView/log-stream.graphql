@@ -1,0 +1,55 @@
+# The two halves of the Log_Stream the Log_View stitches together (12.2, 12.4, 12.9).
+#
+# They are one file because they have to select the *same* fields: the history query and the live
+# subscription deliver the same `LogMessage` records, and a field only one of them selected would be
+# missing from half the list. The fragment is what pins that, so there is one selection set to
+# change rather than two to keep identical.
+#
+# The selection is what the Log_View prints — creation time, Platform and German message text
+# (12.3) — plus the two fields that make the stitching possible:
+#
+# - `sequence` is the position within the Scrape_Run: strictly monotonic and gapless. It is the
+#   value the hook compares against the highest one it holds in order to ignore a redelivered
+#   message (12.9), and the value it passes back as `afterSequence`.
+# - `runId` travels with every message because `(runId, sequence)` is the Apollo cache key of
+#   `LogMessage` (see `src/apollo/cache.ts`). Without it the cache could not normalize the record
+#   and a message delivered twice would be two entries.
+#
+# `level` is selected for the severity of a line; `code` is not, because nothing in the Log_View
+# branches on it and the German text is what the user reads. `id` is not selected either: the cache
+# keys by the sequence pair, and React keys the row by the same pair.
+fragment LogStreamMessage on LogMessage {
+  runId
+  sequence
+  createdAt
+  level
+  platform
+  messageDe
+}
+
+# The history of a Scrape_Run, in ascending sequence order (12.2, 12.9).
+#
+# `afterSequence` is the highest sequence the caller already holds, so the answer starts exactly
+# above it: on the first load that is 0 and the answer begins at the start of the Scrape_Run, and
+# after a reconnect it is the last message on the screen, which is what closes the gap the dropped
+# subscription left.
+#
+# `limit` is deliberately not a variable. The server default is 500, which is the number 12.2 asks
+# to stay retrievable, and a second 500 in this bundle would be a number to drift from it.
+query LogMessages($runId: ID!, $afterSequence: Int) {
+  logMessages(runId: $runId, afterSequence: $afterSequence) {
+    ...LogStreamMessage
+  }
+}
+
+# The status messages of a Scrape_Run as they are created (12.4).
+#
+# `afterSequence` is sent here too, and for a different reason than in the query above: the server
+# replays whatever was created above that sequence between the history answer and the arrival of
+# this subscription, so the handover between the two halves cannot lose a message. Everything that
+# overlaps arrives twice and is dropped by the sequence comparison in `useLogStream`.
+subscription LogMessageAdded($runId: ID!, $afterSequence: Int) {
+  logMessageAdded(runId: $runId, afterSequence: $afterSequence) {
+    ...LogStreamMessage
+  }
+}

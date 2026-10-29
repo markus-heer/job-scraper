@@ -1,0 +1,46 @@
+# Dependencies and package manager state
+node_modules/
+.pnpm-store/
+pnpm-lock.yaml
+
+# Build, cache and coverage output
+dist/
+build/
+out/
+coverage/
+.turbo/
+.vite/
+*.tsbuildinfo
+
+# Spec and steering documents: hand-authored, never reformatted
+.kiro/
+
+# Generated GraphQL schema (written by Nest at startup, never hand-edited)
+**/schema.gql
+
+# Generated frontend artefacts
+**/routeTree.gen.ts
+**/*.generated.ts
+**/__generated__/
+**/graphql/generated/
+
+# Prisma: generated client output and generated migration SQL
+**/.prisma/
+**/prisma/generated/
+**/prisma/migrations/
+apps/api/src/prisma/generated/
+
+# Captured Platform fixtures must stay byte-identical to the retrieved page
+**/__fixtures__/
+
+# Playwright artefacts
+playwright-report/
+test-results/
+blob-report/
+.playwright/
+playwright/.cache/
+
+# Environment files
+.env
+.env.*
+!.env.example

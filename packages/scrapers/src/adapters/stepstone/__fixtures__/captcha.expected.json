@@ -1,0 +1,15 @@
+{
+  "case": "captcha",
+  "provenance": "HAND_AUTHORED",
+  "description": "a bot check instead of the result list",
+  "pageNumber": 1,
+  "response": {
+    "status": 200,
+    "headers": {}
+  },
+  "outcome": "BOT_CHECK",
+  "platformStatus": "PLATFORM_BLOCKED",
+  "hasNextPage": false,
+  "readablePostingCount": 0,
+  "postings": []
+}

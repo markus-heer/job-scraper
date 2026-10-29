@@ -1,0 +1,40 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+  # The Start_Script and its decision modules (scripts/lib). A workspace package rather than loose
+  # files at the repository root, so that `turbo run lint` and `turbo run test` reach them the same
+  # way they reach every other package instead of through a second, hand-maintained entry point.
+  - 'scripts'
+
+# Dependencies whose install scripts may run. Prisma needs them to place its query and
+# schema engines and to write the generated client; everything not listed here stays
+# blocked.
+#
+# `allowBuilds` is the only build-dependency setting pnpm 11 reads: it replaced
+# `onlyBuiltDependencies`, `neverBuiltDependencies`, `ignoredBuiltDependencies` and
+# `onlyBuiltDependenciesFile`, which are now ignored. Because `strictDepBuilds`
+# defaults to true in pnpm 11, an undeclared build script fails the install, so every
+# package that needs one is listed explicitly with a real boolean.
+allowBuilds:
+  # Transitive dependency of @apollo/server through @apollo/usage-reporting-protobuf. Its
+  # install script only matters for Apollo Studio usage reporting, which the Job_Tool never
+  # enables (no graph API key, no cloud infrastructure per 1.16) — so the script stays
+  # blocked. It is listed with an explicit `false` because strictDepBuilds fails the install
+  # on an undeclared build script rather than ignoring it silently.
+  '@apollo/protobufjs': false
+  '@prisma/client': true
+  '@prisma/engines': true
+  prisma: true
+
+  # Transitive dependencies of @testcontainers/postgresql through dockerode, which the
+  # integration test harness needs (9.6). No install script among them is required, so all three
+  # stay blocked and are listed only because strictDepBuilds demands an explicit decision:
+  #
+  # - `ssh2` and its optional `cpu-features` addon only accelerate SSH transports. The harness
+  #   reaches the Docker daemon over the local socket, never over SSH, and ssh2 falls back to its
+  #   pure-JavaScript crypto when the addon is missing.
+  # - `protobufjs` arrives through @grpc/proto-loader. Its script fetches typings used for code
+  #   generation, which nothing in this repository performs.
+  cpu-features: false
+  protobufjs: false
+  ssh2: false

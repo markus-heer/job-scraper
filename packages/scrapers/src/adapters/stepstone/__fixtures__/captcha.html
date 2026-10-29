@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sicherheitsprüfung | StepStone</title>
+  </head>
+  <body>
+    <div id="challenge-form">
+      <h1>Sind Sie ein Mensch?</h1>
+      <p>
+        Bitte bestätigen Sie die Sicherheitsabfrage, damit wir Sie wieder zu den Stellenangeboten
+        weiterleiten können.
+      </p>
+      <iframe
+        src="https://www.google.com/recaptcha/api2/anchor?k=6Lexample&amp;hl=de"
+        title="Sicherheitsabfrage challenge"
+        width="302"
+        height="422"
+      ></iframe>
+      <form action="/captcha/verify" method="post">
+        <input type="hidden" name="returnUrl" value="/jobs/projektmanagerin/in-muenchen" />
+        <button type="submit">Weiter zu den Stellenangeboten</button>
+      </form>
+    </div>
+    <footer>
+      <a href="/impressum">Impressum</a>
+      <a href="/datenschutz">Datenschutz</a>
+    </footer>
+  </body>
+</html>

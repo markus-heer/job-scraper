@@ -1,0 +1,47 @@
+# The effective search criteria of every supported Platform, for the read-only view of 4.11 to 4.13.
+#
+# One request for the whole page, and that is what makes the 3-second bound of 4.11 a property of
+# the design rather than something to measure: the answer is one list of at most four blocks, every
+# block carries its criteria inline, and there is no per-Platform follow-up query and no edge a
+# resolver would have to load row by row. The API_Service determined all of it once at startup and
+# holds it in memory (`PlatformConfigurationService`), so the server does no I/O to answer either.
+#
+# It takes no variables, so every reader of `searchCriteria` shares one cache entry — the activation
+# count of the run controls (`../RunControls/activated-platforms.graphql`) selects two fields of the
+# same query. Both selections are read-only and neither branches on data it did not select, so
+# whichever wrote the cache last decides what is stored and the other reader fetches again on a page
+# change. That costs one request and nothing else.
+#
+# What is selected and why:
+#
+# - `platform` keys the block and is labelled with the brand spelling in the Web_App.
+# - `criteria` is the list 4.11 asks for: exactly one entry per Criterion_Field the Platform
+#   supports, so the omission of an unsupported Criterion_Field is the server's answer rather than a
+#   filter in the browser. `valueText` is the resolved value as German text — "Festanstellung",
+#   "50 km" — because a `SearchProfile` value is a free text, a number needing a unit or a member of
+#   a closed vocabulary needing a label, and the last two are the API_Service's to word.
+#   `provenance` is the enum behind the two labels of 4.12, which *are* the Web_App's
+#   (`de.criteria.provenance`): that criterion spells both strings out literally.
+# - `platformStatusLabelDe` and `configurationHintDe` carry the Platform_Status of 4.7 and the
+#   incomplete configuration of 4.9 as German text, the same way `platformStatusLabelDe` arrives on
+#   a Scrape_Run's per-Platform row. The 14-value vocabulary has its German labels in the
+#   API_Service and `src/i18n/de.ts` holds no copy, so there is nothing here to translate.
+# - `missingMandatoryFields` names the fields of 4.10 as identifiers, so the view can list them
+#   under their own heading next to the status.
+#
+# Not selected: `platformStatus` and `activated`. Nothing in this view branches on either — the
+# label and the hint say what the enum would be read for — and a value that is fetched but never
+# read is a field nobody notices going wrong.
+query SearchCriteria {
+  searchCriteria {
+    platform
+    platformStatusLabelDe
+    configurationHintDe
+    missingMandatoryFields
+    criteria {
+      field
+      valueText
+      provenance
+    }
+  }
+}

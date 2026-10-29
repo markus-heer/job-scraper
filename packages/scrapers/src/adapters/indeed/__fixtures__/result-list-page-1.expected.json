@@ -1,0 +1,52 @@
+{
+  "case": "result-list-page-1",
+  "provenance": "HAND_AUTHORED",
+  "description": "first Result_Page with four readable Job_Posting in the data-testid layout and a further page offered",
+  "pageNumber": 1,
+  "response": {
+    "status": 200,
+    "headers": {}
+  },
+  "outcome": "POSTINGS",
+  "platformStatus": "PAGE_LIMIT_REACHED",
+  "hasNextPage": true,
+  "readablePostingCount": 4,
+  "postings": [
+    {
+      "postingId": "1a2b3c4d5e6f7890",
+      "title": "Projektmanagerin Pharma (m/w/d)",
+      "employer": "Beispiel Pharma GmbH",
+      "workLocation": "München",
+      "publishedAtText": "Vor 3 Tagen geschaltet",
+      "sourceUrl": "https://de.indeed.com/rc/clk?jk=1a2b3c4d5e6f7890",
+      "descriptionText": "Sie steuern klinische Entwicklungsprojekte von der Planung bis zur Zulassung und koordinieren interne wie externe Projektbeteiligte."
+    },
+    {
+      "postingId": "2b3c4d5e6f7890a1",
+      "title": "Senior Projektmanagerin Life Science (m/w/d)",
+      "employer": "Muster Biotech AG",
+      "workLocation": "Garching bei München",
+      "publishedAtText": "Gerade geschaltet",
+      "sourceUrl": "https://de.indeed.com/rc/clk?jk=2b3c4d5e6f7890a1",
+      "descriptionText": "Für unsere Entwicklungsabteilung suchen wir eine erfahrene Projektmanagerin mit Erfahrung in GMP-regulierten Umgebungen."
+    },
+    {
+      "postingId": "3c4d5e6f7890a1b2",
+      "title": "Projektleiterin Pharmaproduktion (m/w/d)",
+      "employer": "Alpha Labs SE",
+      "workLocation": "Martinsried bei München",
+      "publishedAtText": "Vor mehr als 30 Tagen geschaltet",
+      "sourceUrl": "https://de.indeed.com/pagead/clk?jk=3c4d5e6f7890a1b2",
+      "descriptionText": "Sie verantworten Technologietransfers zwischen Entwicklung und Produktion und führen ein interdisziplinäres Projektteam."
+    },
+    {
+      "postingId": "4d5e6f7890a1b2c3",
+      "title": "Project Manager Clinical Operations (f/m/d)",
+      "employer": "Gamma Pharma Services GmbH",
+      "workLocation": "München (Hybrid)",
+      "publishedAtText": "Heute",
+      "sourceUrl": "https://de.indeed.com/viewjob?jk=4d5e6f7890a1b2c3",
+      "descriptionText": "You plan and oversee multinational clinical studies and report directly to the Head of Clinical Operations."
+    }
+  ]
+}

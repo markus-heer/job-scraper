@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "_comment": "Type-check configuration of the Web_App. There is no tsconfig.build.json counterpart as in apps/api: Vite performs the transpilation, so tsc only ever type-checks. The generated src/routeTree.gen.ts is part of the program on purpose — it is what makes a wrong route path a type error. The E2E suite under e2e/ is included as well: Playwright transpiles its specs without type-checking them, so `pnpm check-types` is the only thing that would catch a page object whose locator method no longer exists.",
+  "extends": "@job-scraper/typescript-config/react.json",
+  "compilerOptions": {
+    "types": ["node", "vite/client"]
+  },
+  "include": ["src", "e2e", "codegen.ts", "vite.config.ts", "playwright.config.ts"]
+}

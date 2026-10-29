@@ -1,0 +1,31 @@
+# One opened Job_Posting with its complete description text and the link to the advertisement
+# (10.8, 10.15).
+#
+# Four fields, and that is the whole of Requirement 10.8: the description text, the source URL, the
+# identifier the view was opened with, and the title as the heading of the page. Nothing else is
+# selected, because nothing else is rendered — the overview already shows employer, work location,
+# platform, dates, commute, status and verdict, and repeating them here would be a second place
+# those nine fields are formatted.
+#
+# `jobPosting` is nullable on purpose: an identifier that no stored Job_Posting carries is answered
+# with `null` rather than with an error, because a link to a posting that has since been deleted is
+# a normal state of a bookmarked URL and not a failure of the API_Service. The view tells the two
+# apart — `null` is the German hint of `de.postingDetail.notFound`, a GraphQL error is the failure
+# path of 2.5.
+#
+# `descriptionText` is nullable as well (6.8): a Platform does not always expose a description, and
+# 10.15 asks for a German hint plus the retained source link in exactly that case. The field arrives
+# as `null` *or* as whitespace-only text, so the view decides emptiness rather than relying on the
+# wire value being normalized.
+#
+# `id` is selected so the answer lands on the normalized `JobPosting:<id>` cache entry the overview
+# query already filled: opening a posting from the list reuses what is cached for title and reads
+# only the two detail fields from the API_Service.
+query JobPosting($id: ID!) {
+  jobPosting(id: $id) {
+    id
+    title
+    descriptionText
+    sourceUrl
+  }
+}

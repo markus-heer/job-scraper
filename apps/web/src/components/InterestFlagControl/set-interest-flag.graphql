@@ -1,0 +1,27 @@
+# The Interest_Flag write of Requirement 10.10, and the only mutation the posting overview sends.
+#
+# `UNMARKED` is not a second operation: it is the withdrawal 10.10 asks to be offered, so marking
+# and withdrawing are the same field with the other value of the closed two-value vocabulary.
+#
+# ## Why these three fields come back
+#
+# `id` and `__typename` are what let the answer land in the normalized cache entry of this
+# Job_Posting: Apollo writes `interestFlag` onto `JobPosting:<id>`, every list query holding a
+# reference to that entry re-renders, and the row shows the stored marking without a second read.
+# That is the whole update path — see the component next to this file for why the list is not
+# refetched here.
+#
+# `postingStatus` is selected although this mutation never changes it, and that is the point: 10.10
+# requires the Posting_Status to stay unchanged, and a field that is read back cannot silently go
+# stale in the cache. It costs one column on an answer the Web_App is already waiting for.
+#
+# Nothing else is selected. The badges, the commute line and the relevance block of the row are
+# untouched by this write, and asking for them would invite the cache to overwrite the row with a
+# second, differently-shaped copy of fields that did not change.
+mutation SetInterestFlag($id: ID!, $flag: InterestFlag!) {
+  setInterestFlag(id: $id, flag: $flag) {
+    id
+    interestFlag
+    postingStatus
+  }
+}

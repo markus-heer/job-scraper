@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "NestJS (CommonJS + decorators)",
+  "_comment": "For apps/api. CommonJS plus decorator metadata is what Nest's dependency injection and the GraphQL code-first decorators require. strictPropertyInitialization is off because GraphQL model classes and DTOs declare fields that the framework assigns.",
+  "extends": "./base.json",
+  "compilerOptions": {
+    "module": "CommonJS",
+    "moduleResolution": "Node10",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "declaration": true,
+    "declarationMap": true,
+    "strictPropertyInitialization": false
+  }
+}

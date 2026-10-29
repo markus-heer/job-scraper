@@ -1,0 +1,15 @@
+{
+  "case": "sign-in-wall",
+  "provenance": "HAND_AUTHORED",
+  "description": "the Glassdoor hardsell overlay covering the result list (7.2)",
+  "pageNumber": 1,
+  "response": {
+    "status": 200,
+    "headers": {}
+  },
+  "outcome": "SIGN_IN_REQUIRED",
+  "platformStatus": "SIGN_IN_REQUIRED",
+  "hasNextPage": true,
+  "readablePostingCount": 0,
+  "postings": []
+}

@@ -1,0 +1,17 @@
+{
+  "case": "rate-limited",
+  "provenance": "HAND_AUTHORED",
+  "description": "a reported fetch rate limit: HTTP 429 with a Retry-After header (13.5)",
+  "pageNumber": 1,
+  "response": {
+    "status": 429,
+    "headers": {
+      "retry-after": "120"
+    }
+  },
+  "outcome": "RATE_LIMITED",
+  "platformStatus": "FETCH_RATE_LIMITED",
+  "hasNextPage": false,
+  "readablePostingCount": 0,
+  "postings": []
+}

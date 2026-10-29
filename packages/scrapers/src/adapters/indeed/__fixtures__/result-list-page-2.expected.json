@@ -1,0 +1,61 @@
+{
+  "case": "result-list-page-2",
+  "provenance": "HAND_AUTHORED",
+  "description": "last Result_Page in the legacy job_seen_beacon layout: three readable Job_Posting, one card without a title and one without an advertisement link (6.5), and two absent optional fields (6.8)",
+  "pageNumber": 2,
+  "response": {
+    "status": 200,
+    "headers": {}
+  },
+  "outcome": "POSTINGS",
+  "platformStatus": "COMPLETED",
+  "hasNextPage": false,
+  "readablePostingCount": 3,
+  "postings": [
+    {
+      "postingId": "5e6f7890a1b2c3d4",
+      "title": "Projektmanagerin Klinische Studien (m/w/d)",
+      "employer": "Epsilon Pharma GmbH",
+      "workLocation": "München",
+      "publishedAtText": "Vor 5 Tagen geschaltet",
+      "sourceUrl": "https://de.indeed.com/viewjob?jk=5e6f7890a1b2c3d4",
+      "descriptionText": "Sie planen und überwachen klinische Studien der Phasen II und III und berichten an die Leitung Clinical Operations."
+    },
+    {
+      "postingId": "6f7890a1b2c3d4e5",
+      "title": "Teilprojektleiterin Qualitätssicherung (m/w/d)",
+      "employer": null,
+      "workLocation": "Garching bei München",
+      "publishedAtText": "Vor 12 Tagen geschaltet",
+      "sourceUrl": "https://de.indeed.com/viewjob?jk=6f7890a1b2c3d4e5",
+      "descriptionText": "Sie verantworten die Qualifizierung von Anlagen und die Pflege der GMP-Dokumentation."
+    },
+    {
+      "postingId": "7890a1b2c3d4e5f6",
+      "title": null,
+      "employer": "Zeta Consulting GmbH",
+      "workLocation": "München",
+      "publishedAtText": "Vor 2 Tagen geschaltet",
+      "sourceUrl": "https://de.indeed.com/viewjob?jk=7890a1b2c3d4e5f6",
+      "descriptionText": "Wir begleiten Pharmaunternehmen bei der Einführung neuer Produktionslinien."
+    },
+    {
+      "postingId": "890a1b2c3d4e5f67",
+      "title": "Projektleiter Verpackungstechnik (m/w/d)",
+      "employer": "Eta Packaging SE",
+      "workLocation": "Freising",
+      "publishedAtText": "Vor 9 Tagen geschaltet",
+      "sourceUrl": null,
+      "descriptionText": "Sie führen Projekte zur Umstellung von Verpackungslinien im GMP-Umfeld."
+    },
+    {
+      "postingId": "90a1b2c3d4e5f678",
+      "title": "Project Lead Biotech (m/w/d)",
+      "employer": "Theta Biosciences GmbH",
+      "workLocation": "München",
+      "publishedAtText": "Gestern geschaltet",
+      "sourceUrl": "https://de.indeed.com/viewjob?jk=90a1b2c3d4e5f678",
+      "descriptionText": null
+    }
+  ]
+}

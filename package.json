@@ -1,0 +1,27 @@
+{
+  "name": "job-scraper",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local job search tool: Playwright retrieval, PostgreSQL posting store, German web app",
+  "packageManager": "pnpm@11.4.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node --env-file-if-exists=.env scripts/start.mjs",
+    "format": "prettier --write .",
+    "lint": "turbo run lint",
+    "check-types": "turbo run check-types",
+    "codegen": "turbo run codegen",
+    "build": "turbo run build",
+    "test": "turbo run test -- --run",
+    "test:integration": "turbo run test:integration -- --run",
+    "test:e2e": "turbo run test:e2e",
+    "test:live": "turbo run test:live",
+    "fixtures:capture": "node --env-file-if-exists=.env scripts/fixtures-capture.mjs"
+  },
+  "devDependencies": {
+    "prettier": "3.9.10",
+    "turbo": "2.11.10"
+  }
+}

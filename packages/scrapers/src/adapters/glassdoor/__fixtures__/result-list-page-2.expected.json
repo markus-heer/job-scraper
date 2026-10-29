@@ -1,0 +1,61 @@
+{
+  "case": "result-list-page-2",
+  "provenance": "HAND_AUTHORED",
+  "description": "last Result_Page, no further page offered; of five cards two miss one of the three fields of 6.5 (one no source URL, one no title) and four leave an optional field of 6.8 empty",
+  "pageNumber": 2,
+  "response": {
+    "status": 200,
+    "headers": {}
+  },
+  "outcome": "POSTINGS",
+  "platformStatus": "COMPLETED",
+  "hasNextPage": false,
+  "readablePostingCount": 3,
+  "postings": [
+    {
+      "postingId": "1010301000001",
+      "title": "Projektmanagerin Pharma (m/w/d)",
+      "employer": "Epsilon Pharma GmbH",
+      "workLocation": "München",
+      "publishedAtText": "3T",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/projektmanagerin-pharma-mwd-epsilon-pharma-gmbh-JV_IC2622109_KO0,27_KE28,47.htm?jl=1010301000001",
+      "descriptionText": "Sie steuern klinische Entwicklungsprojekte von der Planung bis zur Zulassung."
+    },
+    {
+      "postingId": "1010301000002",
+      "title": "Teilprojektleiterin Qualitätssicherung (m/w/d)",
+      "employer": null,
+      "workLocation": "Garching bei München",
+      "publishedAtText": "30T+",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/teilprojektleiterin-qualitaetssicherung-mwd-JV_IC2622109_KO0,43.htm?jl=1010301000002",
+      "descriptionText": "Sie begleiten Qualifizierungsprojekte in der Sterilherstellung und stimmen sich mit den Behörden ab."
+    },
+    {
+      "postingId": "1010301000003",
+      "title": "Projektleiter Anlagenbau (m/w/d)",
+      "employer": "Zeta Consulting AG",
+      "workLocation": "Augsburg",
+      "publishedAtText": "11T",
+      "sourceUrl": null,
+      "descriptionText": null
+    },
+    {
+      "postingId": "1010301000004",
+      "title": null,
+      "employer": "Eta Technik SE",
+      "workLocation": "Ingolstadt",
+      "publishedAtText": "4T",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/unbenannte-position-eta-technik-se-JV_IC2622109_KO0,19_KE20,34.htm?jl=1010301000004",
+      "descriptionText": null
+    },
+    {
+      "postingId": "1010301000005",
+      "title": "Project Lead Biotech (m/w/d)",
+      "employer": "Theta Life Science GmbH",
+      "workLocation": "Martinsried",
+      "publishedAtText": "18T",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/project-lead-biotech-mwd-theta-life-science-gmbh-JV_IC2622109_KO0,24_KE25,48.htm?jl=1010301000005",
+      "descriptionText": null
+    }
+  ]
+}

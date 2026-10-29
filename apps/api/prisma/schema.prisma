@@ -1,0 +1,255 @@
+// The single source of truth for the Posting_Store schema (9.1).
+//
+// Every change goes through `pnpm prisma migrate dev --name <change>`: migrations run exactly once in
+// ascending version order and never drop stored Job_Posting, Scrape_Run or relevance assessments (9.6).
+//
+// The enums below mirror the closed value lists of `packages/domain/src/enums.ts` one to one. The enum
+// parity test asserts set equality in both directions, so neither side can gain or lose a value alone.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Binds the `/// [TypeName]` annotations on Json columns below to the interfaces declared in
+// `apps/api/src/prisma/json-types.d.ts`, so `effectiveProfile` and `detail` are typed instead of
+// `Prisma.JsonValue`. The generator only rewrites the types of the client the generator above
+// emitted, which is why it has to be declared after it.
+generator json {
+  provider = "prisma-json-types-generator"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// The four job platforms the Job_Tool retrieves from.
+enum Platform {
+  GLASSDOOR
+  JOBVECTOR
+  INDEED
+  STEPSTONE
+}
+
+enum PostingStatus {
+  LISTED
+  NO_LONGER_LISTED
+}
+
+enum InterestFlag {
+  UNMARKED
+  NOT_INTERESTING
+}
+
+enum RelevanceVerdict {
+  RELEVANT
+  NOT_RELEVANT
+  UNCERTAIN
+  NOT_ASSESSED
+}
+
+/// The 14 permitted Platform_Status values; this list is complete and closed.
+enum PlatformStatus {
+  COMPLETED
+  DISABLED
+  INCOMPLETE_CONFIGURATION
+  SIGN_IN_REQUIRED
+  PLATFORM_BLOCKED
+  PLATFORM_UNREACHABLE
+  PAGE_LAYOUT_UNKNOWN
+  PAGE_LIMIT_REACHED
+  FETCH_RATE_LIMITED
+  FAILED
+  EXCLUDED_BY_ROBOTS_TXT
+  ROBOTS_TXT_UNAVAILABLE
+  CANCELLED_BY_TIME_LIMIT
+  NOT_YET_RUN
+}
+
+enum RunStatus {
+  RUNNING
+  FINISHED
+}
+
+/// The three permitted Run_Outcome values; this list is complete and closed.
+enum RunOutcome {
+  COMPLETED
+  CANCELLED_BY_USER
+  CANCELLED_BY_TIME_LIMIT
+}
+
+enum CommuteMode {
+  BICYCLE
+  TRANSIT
+}
+
+enum CommutePrecision {
+  EXACT
+  IMPRECISE
+  UNKNOWN
+}
+
+enum LogLevel {
+  INFO
+  WARN
+  ERROR
+}
+
+enum NormalizationSource {
+  RULE_BASED
+  AI_PROVIDER
+}
+
+model JobPosting {
+  id String @id @default(uuid())
+
+  // The eight normalized fields of acceptance criterion 6.3.
+  platform        Platform
+  postingId       String
+  title           String    @db.VarChar(200)
+  employer        String?   @db.VarChar(150)
+  workLocation    String?   @db.VarChar(150)
+  publishedAt     DateTime? @db.Timestamptz(3)
+  sourceUrl       String
+  descriptionText String?   @db.VarChar(10000)
+
+  // Lifecycle (9.1, 11.1, 11.8)
+  firstSeenAt    DateTime      @db.Timestamptz(3)
+  lastSeenAt     DateTime      @db.Timestamptz(3)
+  firstSeenRunId String
+  firstSeenRun   ScrapeRun     @relation(fields: [firstSeenRunId], references: [id], onDelete: Restrict)
+  postingStatus  PostingStatus @default(LISTED)
+
+  // User marking, independent of postingStatus (Glossary, 10.10)
+  interestFlag InterestFlag @default(UNMARKED)
+
+  // Relevance assessment (15.1, 15.5, 15.6, 15.15)
+  relevanceVerdict     RelevanceVerdict @default(NOT_ASSESSED)
+  relevanceReason      String?          @db.VarChar(300)
+  relevanceModel       String?
+  relevanceAssessedAt  DateTime?        @db.Timestamptz(3)
+  relevanceSetManually Boolean          @default(false)
+  /// Sort key derived from relevanceVerdict: relevant < uncertain < not assessed < not relevant (10.7).
+  relevanceRank        Int              @default(2)
+  /// SHA-256 over normalized title + description text of the currently stored content.
+  contentHash          String
+  /// contentHash the stored assessment was based on; null when never assessed.
+  relevanceContentHash String?
+
+  // Commute (8.2, 8.5, 8.12)
+  bicycleMinutes       Int?
+  transitMinutes       Int?
+  bestCommuteMinutes   Int?
+  bestCommuteMode      CommuteMode?
+  commutePrecision     CommutePrecision @default(UNKNOWN)
+  /// The workLocation value the stored commute result was computed from (8.5).
+  commuteLocationInput String?
+  commuteCheckedAt     DateTime?        @db.Timestamptz(3)
+
+  @@unique([platform, postingId])
+  @@index([firstSeenAt(sort: Desc)])
+  @@index([firstSeenRunId])
+  @@index([platform, postingStatus])
+  @@index([postingStatus, interestFlag, relevanceVerdict])
+  @@index([bestCommuteMinutes])
+  @@index([publishedAt])
+  @@index([relevanceRank])
+}
+
+model ScrapeRun {
+  id               String      @id @default(uuid())
+  startedAt        DateTime    @db.Timestamptz(3)
+  finishedAt       DateTime?   @db.Timestamptz(3)
+  status           RunStatus   @default(RUNNING)
+  /// Null while status is RUNNING (Glossary).
+  runOutcome       RunOutcome?
+  /// True when this run was closed by the stale-run recovery at API_Service startup.
+  closedByRecovery Boolean     @default(false)
+
+  platformResults   ScrapeRunPlatformResult[]
+  logMessages       LogMessage[]
+  firstSeenPostings JobPosting[]
+
+  @@index([status])
+  @@index([runOutcome, finishedAt(sort: Desc)])
+}
+
+model ScrapeRunPlatformResult {
+  id       String    @id @default(uuid())
+  runId    String
+  run      ScrapeRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  platform Platform
+
+  platformStatus         PlatformStatus
+  pagesFetched           Int            @default(0)
+  newPostings            Int            @default(0)
+  updatedPostings        Int            @default(0)
+  partialResult          Boolean        @default(false)
+  /// Missing mandatory Criterion_Field names for Platform_Status INCOMPLETE_CONFIGURATION (4.9, 4.10).
+  missingMandatoryFields String[]       @default([])
+  /// The effective Search_Profile applied to this Platform in this run (3.8).
+  /// [EffectiveSearchProfileJson]
+  effectiveProfile       Json?
+
+  @@unique([runId, platform])
+  @@index([platform])
+}
+
+model LogMessage {
+  id        String    @id @default(uuid())
+  runId     String
+  run       ScrapeRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  /// Strictly monotonic per runId, starting at 1; drives gapless reload and deduplication (12.2, 12.4, 12.9).
+  sequence  Int
+  createdAt DateTime  @db.Timestamptz(3)
+  platform  Platform?
+  level     LogLevel  @default(INFO)
+  /// Stable English key for tests and developers.
+  code      String
+  /// German text shown in the Log_View (12.3).
+  messageDe String
+  /// Structured context with every secret already masked (14.9).
+  /// [LogMessageDetailJson]
+  detail    Json?
+
+  @@unique([runId, sequence])
+  @@index([runId, sequence])
+}
+
+model CommuteCacheEntry {
+  id          String           @id @default(uuid())
+  homeAddress String
+  /// Target coordinate rounded to 4 decimal places before it enters the key.
+  lat         Decimal          @db.Decimal(9, 4)
+  lon         Decimal          @db.Decimal(9, 4)
+  mode        CommuteMode
+  /// Null caches a determined "no route" result for the validity window.
+  minutes     Int?
+  precision   CommutePrecision
+  createdAt   DateTime         @default(now()) @db.Timestamptz(3)
+  /// createdAt + 30 days (8.9).
+  expiresAt   DateTime         @db.Timestamptz(3)
+
+  @@unique([homeAddress, lat, lon, mode])
+  @@index([expiresAt])
+}
+
+model LocationNormalization {
+  /// The exact free-text work location value as read from the Platform.
+  rawLocation    String              @id
+  /// Geocodable place name, null when the value stayed unresolvable (8.6).
+  normalizedName String?
+  lat            Decimal?            @db.Decimal(9, 4)
+  lon            Decimal?            @db.Decimal(9, 4)
+  precision      CommutePrecision    @default(UNKNOWN)
+  source         NormalizationSource
+  createdAt      DateTime            @default(now()) @db.Timestamptz(3)
+}
+
+/// Last accepted value of each configurable setting, so that an invalid configuration change can be
+/// rejected while the previously valid value is retained (8.14).
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+}

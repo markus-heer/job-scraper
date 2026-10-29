@@ -1,0 +1,64 @@
+# Posting_Store container for the Job_Tool (Requirements 1.10, 1.16).
+#
+# The Job_Tool runs locally: this file describes the only container the tool needs.
+# The Start_Script (`scripts/start.mjs`, step 4) brings this service up and then polls
+# its health status before it applies Prisma migrations.
+#
+# Variable interpolation: Compose reads the repository `.env` file. `DATABASE_URL`
+# stays the single source of truth for the connection (see `.env.example`); the
+# optional `POSTGRES_*` overrides below exist so the Start_Script can hand the values
+# it derived from `DATABASE_URL` to Compose. The `.env.example` template writes the
+# same values out as keys — `POSTGRES_PORT=55432` next to a `DATABASE_URL` naming port
+# 55432 — so a plain `docker compose up -d` from a filled-in `.env` binds the port the
+# connection string names.
+#
+# The fallbacks below apply only where no environment file is present at all. The port
+# fallback is the PostgreSQL default 5432 and is deliberately not the 55432 of the
+# template: without an environment file there is no `DATABASE_URL` to agree with, and
+# a container on the conventional port is the least surprising thing to find.
+#
+# Credentials and the data directory live in the named volume below. Changing user,
+# password or database name after the volume exists has no effect until the volume is
+# removed, because PostgreSQL initialises them only on first start.
+
+name: job-tool
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: job-tool-postgres
+    # Keeps the container alive across machine restarts, so a later Start_Script run
+    # finds it already accepting connections and reuses it instead of creating a
+    # second one (1.10).
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-jobtool}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+      POSTGRES_DB: ${POSTGRES_DB:-jobtool}
+    ports:
+      # Bound to the loopback interface only: the Posting_Store is never reachable
+      # from outside this machine. Host port comes from the environment file, where
+      # `POSTGRES_PORT` must name the same port as `DATABASE_URL` (55432 in the
+      # template); the container port stays the PostgreSQL default.
+      - '127.0.0.1:${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      # Named volume, so every stored Job_Posting, Scrape_Run and relevance
+      # assessment survives a container restart or recreation (1.10).
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      # The Start_Script probes this status (`docker compose ps`) at least every
+      # 2 seconds and gives up after 60 seconds (1.11); 2 s interval x 30 retries
+      # covers exactly that window.
+      test:
+        [
+          'CMD-SHELL',
+          'pg_isready --username="$$POSTGRES_USER" --dbname="$$POSTGRES_DB" --host=127.0.0.1',
+        ]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+      start_period: 5s
+
+volumes:
+  postgres-data:
+    name: job-tool-postgres-data

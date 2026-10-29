@@ -1,0 +1,25 @@
+{
+  "platform": "GLASSDOOR",
+  "case": "result-list-page-1",
+  "capturedAt": "2026-10-29T12:33:00.219Z",
+  "pageNumber": 1,
+  "requestUrl": "https://www.glassdoor.de/Job/jobs.htm?sc.keyword=%22Projektmanagerin%22+OR+%22Projektmanager%22+OR+%22Project+Manager%22+OR+%22Projektleiterin%22+OR+%22Projektleiter%22+OR+%22Project+Lead%22+OR+%22Teilprojektleiterin%22&locKeyword=M%C3%BCnchen&radius=50",
+  "finalUrl": "https://www.glassdoor.de/Job/%22Projektmanagerin%22-OR-%22Projektmanager%22-OR-%22Project-Manager%22-OR-%22Projektleiterin%22-OR-%22Projektleiter%22-OR-%22Project-Lead%22-OR-%22Teilprojektleiterin%22-jobs-SRCH_KO0,142.htm?sc.keyword=%2522Projektmanagerin%2522%2520OR%2520%2522Projektmanager%2522%2520OR%2520%2522Project%2520Manager%2522%2520OR%2520%2522Projektleiterin%2522%2520OR%2520%2522Projektleiter%2522%2520OR%2520%2522Project%2520Lead%2522%2520OR%2520%2522Teilprojektleiterin%2522",
+  "httpStatus": 200,
+  "userAgent": "JobTool/0.1 (private use; contact: mail@markus-heer.com)",
+  "bytes": {
+    "raw": 892054,
+    "sanitized": 236611
+  },
+  "sanitization": {
+    "scriptsRemoved": 122,
+    "stylesRemoved": 56,
+    "trackingPixelsRemoved": 2,
+    "strippedParameters": [
+      "cpc",
+      "guid",
+      "jobListingId",
+      "jrtk"
+    ]
+  }
+}

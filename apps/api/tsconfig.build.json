@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "_comment": "Build configuration: emits dist/ with declarations from src/ only, so tests never end up in the build output. src/testing holds the harnesses and the seed data: it is type-checked with the sources by tsconfig.json, and most of it is emitted, because the E2E harness of task 21.1 reaches the seed scenarios as a compiled CLI (dist/testing/e2e-seed.js). The one file excluded by name is postgres-harness.ts, which imports vitest and @testcontainers/postgresql — devDependencies that must not be reachable from the built API_Service.",
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "rootDir": "src",
+    "outDir": "dist"
+  },
+  "include": ["src"],
+  "exclude": ["src/**/__tests__/**", "src/**/*.test.ts", "src/testing/postgres-harness.ts"]
+}

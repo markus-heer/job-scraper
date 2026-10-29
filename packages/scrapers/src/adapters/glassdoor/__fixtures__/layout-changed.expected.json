@@ -1,0 +1,15 @@
+{
+  "case": "layout-changed",
+  "provenance": "HAND_AUTHORED",
+  "description": "job cards rendered with markup no candidate selector matches, and no statement that the search matched nothing",
+  "pageNumber": 1,
+  "response": {
+    "status": 200,
+    "headers": {}
+  },
+  "outcome": "LAYOUT_UNKNOWN",
+  "platformStatus": "PAGE_LAYOUT_UNKNOWN",
+  "hasNextPage": true,
+  "readablePostingCount": 0,
+  "postings": []
+}

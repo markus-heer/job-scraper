@@ -1,0 +1,88 @@
+{
+  "case": "relative-dates",
+  "provenance": "HAND_AUTHORED",
+  "description": "eight cards covering every publication date wording Indeed states, including the framed forms and a card that states no date at all (6.8)",
+  "pageNumber": 1,
+  "response": {
+    "status": 200,
+    "headers": {}
+  },
+  "outcome": "POSTINGS",
+  "platformStatus": "COMPLETED",
+  "hasNextPage": false,
+  "readablePostingCount": 8,
+  "postings": [
+    {
+      "postingId": "a1b2c3d4e5f60001",
+      "title": "Projektmanagerin I (m/w/d)",
+      "employer": "Iota Pharma GmbH",
+      "workLocation": "München",
+      "publishedAtText": "Vor 3 Tagen geschaltet",
+      "sourceUrl": "https://de.indeed.com/viewjob?jk=a1b2c3d4e5f60001",
+      "descriptionText": null
+    },
+    {
+      "postingId": "a1b2c3d4e5f60002",
+      "title": "Projektmanagerin II (m/w/d)",
+      "employer": "Kappa Biotech AG",
+      "workLocation": "München",
+      "publishedAtText": "Gerade geschaltet",
+      "sourceUrl": "https://de.indeed.com/viewjob?jk=a1b2c3d4e5f60002",
+      "descriptionText": null
+    },
+    {
+      "postingId": "a1b2c3d4e5f60003",
+      "title": "Projektmanagerin III (m/w/d)",
+      "employer": "Lambda Labs SE",
+      "workLocation": "München",
+      "publishedAtText": "Heute",
+      "sourceUrl": "https://de.indeed.com/viewjob?jk=a1b2c3d4e5f60003",
+      "descriptionText": null
+    },
+    {
+      "postingId": "a1b2c3d4e5f60004",
+      "title": "Projektmanagerin IV (m/w/d)",
+      "employer": "My Pharma GmbH",
+      "workLocation": "München",
+      "publishedAtText": "Gestern geschaltet",
+      "sourceUrl": "https://de.indeed.com/viewjob?jk=a1b2c3d4e5f60004",
+      "descriptionText": null
+    },
+    {
+      "postingId": "a1b2c3d4e5f60005",
+      "title": "Projektmanagerin V (m/w/d)",
+      "employer": "Ny Biosciences GmbH",
+      "workLocation": "München",
+      "publishedAtText": "Vor mehr als 30 Tagen geschaltet",
+      "sourceUrl": "https://de.indeed.com/viewjob?jk=a1b2c3d4e5f60005",
+      "descriptionText": null
+    },
+    {
+      "postingId": "a1b2c3d4e5f60006",
+      "title": "Projektmanagerin VI (m/w/d)",
+      "employer": "Xi Pharma Services GmbH",
+      "workLocation": "München",
+      "publishedAtText": "Vor 30+ Tagen geschaltet",
+      "sourceUrl": "https://de.indeed.com/viewjob?jk=a1b2c3d4e5f60006",
+      "descriptionText": null
+    },
+    {
+      "postingId": "a1b2c3d4e5f60007",
+      "title": "Projektmanagerin VII (m/w/d)",
+      "employer": "Omikron Pharma GmbH",
+      "workLocation": "München",
+      "publishedAtText": "2026-10-22",
+      "sourceUrl": "https://de.indeed.com/viewjob?jk=a1b2c3d4e5f60007",
+      "descriptionText": null
+    },
+    {
+      "postingId": "a1b2c3d4e5f60008",
+      "title": "Projektmanagerin VIII (m/w/d)",
+      "employer": "Pi Biotech AG",
+      "workLocation": "München",
+      "publishedAtText": null,
+      "sourceUrl": "https://de.indeed.com/viewjob?jk=a1b2c3d4e5f60008",
+      "descriptionText": null
+    }
+  ]
+}

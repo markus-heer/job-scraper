@@ -1,0 +1,17 @@
+{
+  "name": "@job-scraper/scripts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Start_Script and maintenance entry points of the Job_Tool, plus the decision logic they are built from",
+  "license": "UNLICENSED",
+  "type": "module",
+  "scripts": {
+    "lint": "eslint . --fix",
+    "test": "vitest"
+  },
+  "devDependencies": {
+    "@job-scraper/eslint-config": "workspace:*",
+    "eslint": "10.13.0",
+    "vitest": "5.0.5"
+  }
+}

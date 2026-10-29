@@ -1,0 +1,118 @@
+/*
+ * The Log_View and the overlay it is rendered in (12.2, 12.8, 12.10).
+ *
+ * Imported by `./index.tsx` rather than by the route, so the Log_View carries its own appearance
+ * wherever it is mounted — the same arrangement as `../PostingList/posting-list.css`.
+ *
+ * Nothing here is the only carrier of a state (2.4): the severity of a line is an attribute the
+ * stylesheet reads, and what the user reads is the German sentence next to it. The backdrop is
+ * opaque enough that the text of the route beneath it cannot be mistaken for part of the Log_View,
+ * and transparent enough that the user sees where they will be when they close it (12.8).
+ */
+
+.log-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 2rem 1rem;
+  overflow-y: auto;
+  background: rgb(0 0 0 / 60%);
+}
+
+.log-overlay__dialog {
+  width: min(60rem, 100%);
+  padding: 1.5rem;
+  background: #fff;
+  border: 1px solid #333;
+  border-radius: 0.5rem;
+}
+
+.log-overlay__header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.log-overlay__heading {
+  margin: 0;
+}
+
+.log-overlay__close-hint {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+.log-view__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  align-items: flex-start;
+  margin: 1rem 0;
+}
+
+.log-view__messages,
+.log-summary__platforms {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.log-view__messages caption,
+.log-summary__platforms caption {
+  text-align: left;
+  font-weight: 700;
+  padding-bottom: 0.25rem;
+}
+
+.log-view__messages th,
+.log-view__messages td,
+.log-summary__platforms th,
+.log-summary__platforms td {
+  padding: 0.25rem 0.5rem;
+  border-bottom: 1px solid #ddd;
+  vertical-align: top;
+}
+
+.log-line__time,
+.log-line__platform {
+  white-space: nowrap;
+}
+
+/* Severity as weight, never as colour alone (2.4); the sentence says what happened. */
+.log-line[data-level='WARN'] .log-line__message {
+  font-weight: 600;
+}
+
+.log-line[data-level='ERROR'] .log-line__message {
+  font-weight: 700;
+}
+
+.log-summary {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 2px solid #333;
+}
+
+.log-summary__values {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.25rem 1rem;
+  margin: 0 0 1rem;
+}
+
+.log-summary__values dt {
+  font-weight: 600;
+}
+
+.log-summary__values dd {
+  margin: 0;
+}
+
+.log-summary__partial {
+  font-style: italic;
+}

@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sicherheitsprüfung | jobvector</title>
+  </head>
+  <body>
+    <div id="challenge-form">
+      <h1>Sind Sie ein Mensch?</h1>
+      <p>
+        Bitte bestätigen Sie die Sicherheitsabfrage, damit wir Sie wieder zu den Stellenangeboten
+        weiterleiten können.
+      </p>
+      <iframe
+        src="https://challenges.cloudflare.com/turnstile/v0/api.js/anchor?k=0xExample&amp;hl=de"
+        title="Sicherheitsabfrage challenge"
+        width="300"
+        height="65"
+      ></iframe>
+      <form action="/sicherheitspruefung/verify" method="post">
+        <input type="hidden" name="returnUrl" value="/jobs/" />
+        <button type="submit">Weiter zu den Stellenangeboten</button>
+      </form>
+    </div>
+    <footer class="jv-footer">
+      <a href="/impressum">Impressum</a>
+      <a href="/datenschutz">Datenschutz</a>
+    </footer>
+  </body>
+</html>

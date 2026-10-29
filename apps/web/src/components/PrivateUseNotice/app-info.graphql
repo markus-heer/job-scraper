@@ -1,0 +1,23 @@
+# The operating facts the shell states on every page.
+#
+# Requirement 14.8 asks the landing page for a German hint, visible without scrolling, that names
+# the private purpose of use of the Job_Tool and says whether the Relevance_Service is currently
+# activated. Both values are operating state of the API_Service rather than anything the browser
+# knows, so they are read here rather than built from a constant in the bundle: the switch of 15.9
+# lives in the local environment file, and a Job_Tool restarted without an AI_Provider key has to
+# say so without the Web_App being rebuilt.
+#
+# `privateUseNoticeDe` is the API_Service's sentence and is rendered unchanged — the same split that
+# keeps every German failure message in `apps/api/src/common/error-mapping.ts`. The two remaining
+# fields are the Home_Address and the Commute_Threshold of 8.10, which the shell labels with
+# `de.shell.homeAddressLabel` and `de.shell.commuteThresholdLabel`: they are the configured values
+# every "gut erreichbar" badge in the posting overview is measured against, so the user can read
+# what that badge means without opening the source code.
+query AppInfo {
+  appInfo {
+    privateUseNoticeDe
+    relevanceServiceActivated
+    homeAddress
+    commuteThresholdMinutes
+  }
+}

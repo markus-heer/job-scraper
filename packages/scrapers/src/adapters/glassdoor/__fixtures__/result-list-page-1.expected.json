@@ -1,0 +1,286 @@
+{
+  "case": "result-list-page-1",
+  "provenance": "CAPTURED",
+  "description": "the Result_Page glassdoor.de served on 2026-10-29 with HTTP 200: 30 readable Job_Posting and a \"Mehr Jobs anzeigen\" control",
+  "pageNumber": 1,
+  "response": {
+    "status": 200,
+    "headers": {}
+  },
+  "outcome": "POSTINGS",
+  "platformStatus": "PAGE_LIMIT_REACHED",
+  "hasNextPage": true,
+  "readablePostingCount": 30,
+  "postings": [
+    {
+      "postingId": "1010299809793",
+      "title": "Projektleiter (m/w/d) im Bereich Service",
+      "employer": "WISAG",
+      "workLocation": "Dresden",
+      "publishedAtText": "10T",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/projektleiter-mwd-im-bereich-service-wisag-JV_IC2610266_KO0,36_KE37,42.htm?jl=1010299809793",
+      "descriptionText": "Sicherer Umgang mit Excel, idealerweise Kenntnisse in Pro-Bau/S und SAP. Urlaubs- und Weihnachtsgeld, zusätzlich eine Leistungszulage ab dem 7.&hellip; Kenntnisse und Fähigkeiten: Kostenmanagement, SAP, Projektkoordination, Elektrotechnik, Bauleitung"
+    },
+    {
+      "postingId": "1010283177837",
+      "title": "Fachbauleiter (m/w/d)",
+      "employer": "Cteam Consulting & Anlagenbau",
+      "workLocation": "Ummendorf",
+      "publishedAtText": "27T",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/fachbauleiter-mwd-cteam-consulting-anlagenbau-JV_IC2511032_KO0,17_KE18,45.htm?jl=1010283177837",
+      "descriptionText": "Dann bring deine Erfahrung als Fachbauleiter (m/w/d) ein und gestalte anspruchsvolle Projekte aktiv mit. Cteam ist ein führender Dienstleister im deutschen und…&hellip; Kenntnisse und Fähigkeiten: Projektkoordination, Microsoft Office, Bauleitung"
+    },
+    {
+      "postingId": "1009951463429",
+      "title": "Senior SAP Projektmanager / S4HANA (w/m/d)",
+      "employer": "HENSOLDT",
+      "workLocation": "Ulm",
+      "publishedAtText": "30T+",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/senior-sap-projektmanager-s4hana-wmd-hensoldt-JV_IC2690154_KO0,36_KE37,45.htm?jl=1009951463429",
+      "descriptionText": "Für den Bereich „Informationsmanagement (Inhouse IT) / Portfolio & Project Management“ suchen wir zum nächstmöglichen Zeitpunkt einen „Expert SAP Projektmanager…&hellip; Kenntnisse und Fähigkeiten: Englisch, Risikomanagement, SAP S/4HANA, Deutsch"
+    },
+    {
+      "postingId": "1010299949838",
+      "title": "Projektleiter:in / Oberbauleiter:in im Straßen- und Tiefbau (m/w/d)",
+      "employer": "STRABAG SE",
+      "workLocation": "Wald-Michelbach",
+      "publishedAtText": "9T",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/projektleiter-in-oberbauleiter-in-im-stra%C3%9Fen-und-tiefbau-mwd-strabag-se-JV_IC2553658_KO0,60_KE61,71.htm?jl=1010299949838",
+      "descriptionText": "Verantwortliche Steuerung und Überwachung von Kalkulationen, Angeboten, Bauabläufen sowie Kontrolle der Baustellenergebnisse.&hellip; Kenntnisse und Fähigkeiten: Microsoft Office, Personalführung, Teamleitung, Vertragsverhandlung, Bauleitung"
+    },
+    {
+      "postingId": "1010300938801",
+      "title": "Projektcontroller / Projektmanager Finance (m/w/d) mit Schwerpunkt Controlling & Reporting",
+      "employer": "FACT GmbH eFacilities Solutions",
+      "workLocation": "Böblingen",
+      "publishedAtText": "9T",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/projektcontroller-projektmanager-finance-mwd-mit-schwerpunkt-controlling-reporting-fact-gmbh-efacilities-solutions-JV_IC2765468_KO0,82_KE83,114.htm?jl=1010300938801",
+      "descriptionText": "Mit rund 180 Mitarbeitern an 6 Standorten setzen wir mit unseren innovativen Produkten und Dienstleistungen immer wieder neue Maßstäbe.&hellip; Kenntnisse und Fähigkeiten: Kostenmanagement, Beschaffung, ERP-Systeme, Kostenkontrolle, Kostenrechnung"
+    },
+    {
+      "postingId": "1010213464116",
+      "title": "Projektleiter Wohnungsbau (m/w/d)",
+      "employer": "Allbau",
+      "workLocation": "Essen",
+      "publishedAtText": "30T+",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/projektleiter-wohnungsbau-mwd-allbau-JV_IC2819807_KO0,29_KE30,36.htm?jl=1010213464116",
+      "descriptionText": "Projektleiter Wohnungsbau (m/w/d) Energetische Modernisierung*. Zentrale Lage und gute verkehrstechnische Anbindung sowie Zuschuss zum Firmenticket oder…&hellip; Kenntnisse und Fähigkeiten: Kostenmanagement, Kostenkontrolle"
+    },
+    {
+      "postingId": "1010303723920",
+      "title": "Dienstleistungs -und Projektmanager*in Elektromobilität (m/w/d)",
+      "employer": "Westfalen Weser Ladeservice GmbH",
+      "workLocation": "Paderborn",
+      "publishedAtText": "6T",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/dienstleistungs-und-projektmanager-in-elektromobilit%C3%A4t-mwd-westfalen-weser-ladeservice-gmbh-JV_IC2815597_KO0,58_KE59,91.htm?jl=1010303723920",
+      "descriptionText": "Die Westfalen Weser Ladeservice (WWL) ist eine 100%-Tochter der Westfalen Weser Gruppe. Damit gestalten wir aktiv die Mobilitätswende in der Region.&hellip; Kenntnisse und Fähigkeiten: Kostenmanagement, Microsoft Excel, Beschaffung, Prozessverbesserung, Kostenkontrolle"
+    },
+    {
+      "postingId": "1010290489311",
+      "title": "Projektleiter (m/w/d) Project Management Office",
+      "employer": "Meler Vario Sytem",
+      "workLocation": "Fulda",
+      "publishedAtText": "20T",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/projektleiter-mwd-project-management-office-mehler-vario-system-gmbh-JV_IC2556196_KO0,43_KE44,68.htm?jl=1010290489311",
+      "descriptionText": "Projektleiter (m/w/d) Project Management Office. Sie sind zuständig für die Durchführung und Weiterentwicklung des Projektmanagements in der Unternehmensgruppe…&hellip; Kenntnisse und Fähigkeiten: Kostenmanagement, SAP, Prozessverbesserung, Englisch, Microsoft Office"
+    },
+    {
+      "postingId": "1009994491128",
+      "title": "Projektleiter SHK - Schwerpunkt Heizung (m/w/d) in Unterensingen",
+      "employer": "Class Luft- und Klima-Service",
+      "workLocation": "Unterensingen",
+      "publishedAtText": "30T+",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/projektleiter-shk-schwerpunkt-heizung-mwd-in-unterensingen-class-luft-und-klima-service-gmbh-JV_IC2507437_KO0,58_KE59,92.htm?jl=1009994491128",
+      "descriptionText": "Idealerweise *Meister*, *Techniker SHK *oder abgeschlossenes *Studium *der *Versorgungstechnik*. Abwechslungsreiche und anspruchsvolle Tätigkeit mit viel…&hellip; Kenntnisse und Fähigkeiten: Projektkoordination, Personalführung, Teamleitung, Projektleitung, Deutsch"
+    },
+    {
+      "postingId": "1010074533619",
+      "title": "Projektleiter (m/w/d) Umspannwerksbau",
+      "employer": "Enercon",
+      "workLocation": "Mainz",
+      "publishedAtText": "30T+",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/projektleiter-mwd-umspannwerksbau-enercon-JV_IC2721764_KO0,33_KE34,41.htm?jl=1010074533619",
+      "descriptionText": "Auch in anderen Bereichen, wie z.B. Innovative Ideen sind das Markenzeichen unserer Erfolge und treiben uns an. Gutes Englisch in Wort und Schrift vorteilhaft.&hellip; Kenntnisse und Fähigkeiten: Englisch, Elektrotechnik, Deutsch"
+    },
+    {
+      "postingId": "1010218387868",
+      "title": "Technischer Projektleiter - Missionssysteme für Gefechtsfahrzeuge (m/w/d)",
+      "employer": "Rheinmetall",
+      "workLocation": "Bremen",
+      "publishedAtText": "30T+",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/technischer-projektleiter-missionssysteme-f%C3%BCr-gefechtsfahrzeuge-mwd-rheinmetall-JV_IC2462939_KO0,67_KE68,79.htm?jl=1010218387868",
+      "descriptionText": "Verantwortung für die Durchführung des Technischen Managements (u. a. Angebotsbearbeitung, Systementwicklung, Anforderungsanalysen und –management).&hellip; Kenntnisse und Fähigkeiten: Personalführung, Produktentwicklung, Teamleitung, Systems Engineering, Anfordungsmanagement"
+    },
+    {
+      "postingId": "1010074533594",
+      "title": "Projektleiter (m/w/d) Umspannwerksbau",
+      "employer": "Enercon",
+      "workLocation": "Bremen",
+      "publishedAtText": "30T+",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/projektleiter-mwd-umspannwerksbau-enercon-JV_IC2462939_KO0,33_KE34,41.htm?jl=1010074533594",
+      "descriptionText": "Auch in anderen Bereichen, wie z.B. Innovative Ideen sind das Markenzeichen unserer Erfolge und treiben uns an. Gutes Englisch in Wort und Schrift vorteilhaft.&hellip; Kenntnisse und Fähigkeiten: Englisch, Elektrotechnik, Deutsch"
+    },
+    {
+      "postingId": "1010282307258",
+      "title": "IT Project Manager / Product Owner Filialapplikationen (m/w/d)",
+      "employer": "Schwarz Digits",
+      "workLocation": "Bad Friedrichshall",
+      "publishedAtText": "27T",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/it-project-manager-product-owner-filialapplikationen-mwd-schwarz-digits-JV_IC4990441_KO0,56_KE57,71.htm?jl=1010282307258",
+      "descriptionText": "Du denkst über den Tellerrand hinaus und erkennst strategische Potenziale über verschiedene Themenfelder hinweg.&hellip; Kenntnisse und Fähigkeiten: Englisch, Releasemanagement, Risikomanagement, ServiceNow, Agile"
+    },
+    {
+      "postingId": "1010297911468",
+      "title": "Bauleiter (m/w/d) Elektrotechnik",
+      "employer": "Franke + Pahl Industrieservices GmbH",
+      "workLocation": "Hamburg",
+      "publishedAtText": "12T",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/bauleiter-mwd-elektrotechnik-franke-pahl-industrieservices-gmbh-JV_IC2804376_KO0,28_KE29,63.htm?jl=1010297911468",
+      "descriptionText": "Bauleiter (m/w/d) Elektrotechnik*. Hamburg | Vollzeit | unbefristet*. Sie bringen Projekte ans Netz. Wir geben Ihnen 60 Jahre Erfahrung mit.*.&hellip; Kenntnisse und Fähigkeiten: Kostenmanagement, Kostenkontrolle, Elektrotechnik, Microsoft Office, Teamleitung"
+    },
+    {
+      "postingId": "1010297797893",
+      "title": "Projektmanager – Team International (m/w/d)",
+      "employer": "HUBER",
+      "workLocation": "Berching",
+      "publishedAtText": "13T",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/projektmanager-team-international-mwd-huber-JV_IC2459859_KO0,37_KE38,43.htm?jl=1010297797893",
+      "descriptionText": "Ansprechpartner für Kunden, Lieferanten sowie interner Fachabteilungen während der. Fachliche Koordination aller Projektbeteiligter und Schnittstellen.&hellip; Kenntnisse und Fähigkeiten: Kostenmanagement, Spanisch, ERP-Systeme, Prozessverbesserung, Englisch"
+    },
+    {
+      "postingId": "1010104078584",
+      "title": "Technischer Projektleiter - Surface-to-Air Missile Systems (m/w/d",
+      "employer": "Rheinmetall",
+      "workLocation": "Bremen",
+      "publishedAtText": "30T+",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/technischer-projektleiter-surface-to-air-missile-systems-mwd-rheinmetall-JV_IC2462939_KO0,60_KE61,72.htm?jl=1010104078584",
+      "descriptionText": "Verantwortung für die Erstellung von technischen Entscheidungsvorlagen (u.a. Make or buy). Verantwortliche Durchführung des Technischen Managements im Rahmen…&hellip; Kenntnisse und Fähigkeiten: Kostenmanagement, Qualitätssicherung, Produktentwicklung, Teamleitung, Risikomanagement"
+    },
+    {
+      "postingId": "1010297677442",
+      "title": "Projektleiter / Manager Engineering (m/w/d)",
+      "employer": "DICO Drinks",
+      "workLocation": "Hückelhoven",
+      "publishedAtText": "13T",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/projektleiter-manager-engineering-mwd-dico-drinks-gmbh-JV_IC2820723_KO0,37_KE38,54.htm?jl=1010297677442",
+      "descriptionText": "Entwicklung und Umsetzung innovativer Energie- und Nachhaltigkeitskonzepte zur kontinuierlichen Verbesserung der Produktionsprozesse.&hellip; Kenntnisse und Fähigkeiten: Kostenmanagement, Kontinuierlicher Verbesserungsprozess, Risikomanagement, Budgetierung"
+    },
+    {
+      "postingId": "1010286508700",
+      "title": "Senior Projektmanager (m/w/d) Gebäudemodernisierung",
+      "employer": "GWH Wohnungsgesellschaft mbH Hessen",
+      "workLocation": "Frankfurt am Main",
+      "publishedAtText": "23T",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/senior-projektmanager-mwd-geb%C3%A4udemodernisierung-gwh-wohnungsgesellschaft-mbh-hessen-JV_IC2632180_KO0,47_KE48,83.htm?jl=1010286508700",
+      "descriptionText": "In Frankfurt | Vollzeit | Unbefristet. Fundierte mehrjährige Berufserfahrung in vergleichbarer Position bzw. Sehr gute MS Oﬃce-Kenntnisse, insbesondere MS Excel…&hellip; Kenntnisse und Fähigkeiten: Kostenmanagement, Microsoft Excel, SAP, Microsoft Office, Teamleitung"
+    },
+    {
+      "postingId": "1010175916500",
+      "title": "Projektleiter TGA Lüftungstechnik / Meister HKLS (m/w/d)",
+      "employer": "GA-tec Gebäude- und Anlagentechnik GmbH",
+      "workLocation": "Berlin",
+      "publishedAtText": "30T+",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/projektleiter-tga-l%C3%BCftungstechnik-meister-hkls-mwd-ga-tec-geb%C3%A4ude-und-anlagentechnik-gmbh-JV_IC2622109_KO0,50_KE51,89.htm?jl=1010175916500",
+      "descriptionText": "Exklusive Mitarbeiterangebote rund um Fitness, E-Bike/Bike-Leasing und Entertainment (Netflix, etc.). Technische und kaufmännische Abwicklung von (Groß-)…&hellip; Kenntnisse und Fähigkeiten: Beschaffung, Microsoft Office, Teamleitung, HLK, Bauleitung"
+    },
+    {
+      "postingId": "1010302468074",
+      "title": "Projektleiter (m/w/d) im Bereich Starkstrom / Schwachstrom",
+      "employer": "Eiffage",
+      "workLocation": "Essen",
+      "publishedAtText": "7T",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/projektleiter-mwd-im-bereich-starkstrom-schwachstrom-eiffage-JV_IC2819807_KO0,52_KE53,60.htm?jl=1010302468074",
+      "descriptionText": "Wir planen, installieren und warten bundesweit anspruchsvolle Anlagen und gehören zu den führenden Unternehmen in den Geschäftsfeldern Automatisierung, Facility…&hellip; Kenntnisse und Fähigkeiten: Projektkoordination, Elektrotechnik, Personalführung, Teamleitung, Technisches Schreiben"
+    },
+    {
+      "postingId": "1010304538269",
+      "title": "Projektmanager (m/w/d) Fachkräfte",
+      "employer": "Wirtschaftsförderung Land Brandenburg",
+      "workLocation": "Eberswalde",
+      "publishedAtText": "6T",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/projektmanager-mwd-fachkr%C3%A4fte-wirtschaftsf%C3%B6rderung-land-brandenburg-JV_IC2713134_KO0,29_KE30,67.htm?jl=1010304538269",
+      "descriptionText": "Gestalten Sie die wirtschaftliche Entwicklung in Brandenburg aktiv mit. Für unser Regionalcenter Nordost-Brandenburg (Landkreise Landkreise Oberhavel, Barnim…&hellip; Kenntnisse und Fähigkeiten: Marktanalyse, Englisch, Microsoft Office, Analysefähigkeit, Personalentwicklung"
+    },
+    {
+      "postingId": "1010213533297",
+      "title": "Projektmanager Unternehmensentwicklung (f/m/d)",
+      "employer": "FACTUR Billing Solutions",
+      "workLocation": "Aachen",
+      "publishedAtText": "30T+",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/projektmanager-unternehmensentwicklung-fmd-factur-billing-solutions-gmbh-JV_IC2692677_KO0,42_KE43,72.htm?jl=1010213533297",
+      "descriptionText": "Sie verfügen über ein erfolgreich abgeschlossenes Studium mit wirtschaftlichem Bezug oder eine vergleichbare Qualifikation. Ihr Profil - das bringen Sie mit.&hellip; Kenntnisse und Fähigkeiten: Unternehmensanalyse, Prozessverbesserung, Geschäftsprozessanalyse, Künstliche Intelligenz, Projektleitung"
+    },
+    {
+      "postingId": "1010186689395",
+      "title": "Projektmanager - Startplattformen für Lenkflugkörper im Flugabwehrbereich (m/w/d)",
+      "employer": "Rheinmetall",
+      "workLocation": "Bremen",
+      "publishedAtText": "30T+",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/projektmanager-startplattformen-f%C3%BCr-lenkflugk%C3%B6rper-im-flugabwehrbereich-mwd-rheinmetall-JV_IC2462939_KO0,75_KE76,87.htm?jl=1010186689395",
+      "descriptionText": "Dann werden Sie Teil unseres Teams und übernehmen die Verantwortung für die Entwicklung und Integration eines hochmodernen Flugabwehrraketenturms.&hellip; Kenntnisse und Fähigkeiten: Französisch, Kostenmanagement, Spanisch, Sales Support, Englisch"
+    },
+    {
+      "postingId": "1010285750473",
+      "title": "Projektmanager Nautik Simulation (m/w/d)",
+      "employer": "Rheinmetall",
+      "workLocation": "Bremen",
+      "publishedAtText": "23T",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/projektmanager-nautik-simulation-mwd-rheinmetall-JV_IC2462939_KO0,36_KE37,48.htm?jl=1010285750473",
+      "descriptionText": "Als Projektmanager in der Nautik Simulation(m/w/d) haben Sie bei uns die Möglichkeit spannende Projekte in einem internationalen Umfeld zu gestalten.&hellip; Kenntnisse und Fähigkeiten: Französisch, Kostenmanagement, Spanisch, Sales Support, Projektkoordination"
+    },
+    {
+      "postingId": "1010228383959",
+      "title": "Technischer Projektleiter Schienenfahrzeuge (m/w/d)",
+      "employer": "InterEngineer",
+      "workLocation": "Kiel",
+      "publishedAtText": "30T+",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/technischer-projektleiter-schienenfahrzeuge-mwd-interengineer-JV_IC2857366_KO0,47_KE48,61.htm?jl=1010228383959",
+      "descriptionText": "Gemeinsam mit unseren Tochtergesellschaften vereinen wir umfassende Kompetenzen in den Bereichen Engineering, Beratung und Schulung rund um sicherheitsrelevante…&hellip; Kenntnisse und Fähigkeiten: Kostenmanagement, Projektplanung, Projektkoordination, Englisch, Teamleitung"
+    },
+    {
+      "postingId": "1010153700278",
+      "title": "Teamleitung Projektmanagement Hochbau (all genders)",
+      "employer": "ApoProjekt",
+      "workLocation": "Berlin",
+      "publishedAtText": "30T+",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/teamleitung-projektmanagement-hochbau-all-genders-apoprojekt-JV_IC2622109_KO0,49_KE50,60.htm?jl=1010153700278",
+      "descriptionText": "Du hast ein erfolgreich abgeschlossenes Studium als Bauingenieur oder Architekt oder eine vergleichbare Qualifikation.&hellip; Kenntnisse und Fähigkeiten: Kostenmanagement, Kostenkontrolle, Personalführung, Qualitätskontrolle, Personaleinsatzplanung"
+    },
+    {
+      "postingId": "1010286763889",
+      "title": "Senior Project Manager Real Estate d/w/m",
+      "employer": "RWE",
+      "workLocation": "Essen",
+      "publishedAtText": "23T",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/senior-project-manager-real-estate-dwm-rwe-JV_IC2819807_KO0,38_KE39,42.htm?jl=1010286763889",
+      "descriptionText": "Erfolgreich abgeschlossenes Hochschulstudium im Bereich Betriebswirtschaft, Ingenieurwesen oder eine vergleichbare Qualifikation.&hellip; Kenntnisse und Fähigkeiten: Kostenmanagement, Englisch, Analysefähigkeit, Kontinuierlicher Verbesserungsprozess, Teamleitung"
+    },
+    {
+      "postingId": "1010222244072",
+      "title": "Projektmanager*in Hochspannungsleitungen (m/w/d)",
+      "employer": "Westfalen Weser Energie",
+      "workLocation": "Paderborn",
+      "publishedAtText": "30T+",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/projektmanager-in-hochspannungsleitungen-mwd-westfalen-weser-energie-JV_IC2815597_KO0,44_KE45,68.htm?jl=1010222244072",
+      "descriptionText": "Eigenverantwortliche Budgetplanung und -Überwachung im Projektbereich. Unterstützung bei der Arbeitssicherheit und Einhaltung geltender Vorschriften und…&hellip; Kenntnisse und Fähigkeiten: Kostenmanagement, Prozessverbesserung, Projektkoordination, Kostenkontrolle, Elektrotechnik"
+    },
+    {
+      "postingId": "1010133497209",
+      "title": "Technical Project Manager / Technischer Projektmanager (m/w/d) Software",
+      "employer": "PLATH Group",
+      "workLocation": "Hamburg",
+      "publishedAtText": "30T+",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/technical-project-manager-technischer-projektmanager-mwd-software-plath-JV_IC2804376_KO0,65_KE66,71.htm?jl=1010133497209",
+      "descriptionText": "Erfolgreich abgeschlossenes Studium idealerweise im Bereich Informations- Nachrichten-, Elektrotechnik, o.ä. Erarbeitung technischer Konzepte und Designs.&hellip; Kenntnisse und Fähigkeiten: Software-Fehlerbehebung, Englisch, Abnahmetests, Anfordungsmanagement, Technisches Schreiben"
+    },
+    {
+      "postingId": "1010307631437",
+      "title": "Projektmanager (M/W/D) Anlagen",
+      "employer": "Elma Schmidbauer",
+      "workLocation": "Singen (Hohentwiel)",
+      "publishedAtText": "2T",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/projektmanager-mwd-anlagen-elma-schmidbauer-gmbh-JV_IC4991842_KO0,26_KE27,48.htm?jl=1010307631437",
+      "descriptionText": "Eine weitsichtige Unternehmens- sowie eine nachhaltige Produktpolitik bilden dabei die Basis unseres Erfolgs, die wir gemeinsam mit unseren motivierten…&hellip; Kenntnisse und Fähigkeiten: Kostenmanagement, Englisch, Kostenkontrolle, Teamleitung, Risikomanagement"
+    }
+  ]
+}

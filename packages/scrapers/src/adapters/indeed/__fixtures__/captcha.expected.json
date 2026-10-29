@@ -1,0 +1,15 @@
+{
+  "case": "captcha",
+  "provenance": "CAPTURED",
+  "description": "the bot check de.indeed.com served the Job_Tool on 2026-10-29 with HTTP 403: Indeed’s own security check behind Cloudflare, left unanswered (7.6)",
+  "pageNumber": 1,
+  "response": {
+    "status": 403,
+    "headers": {}
+  },
+  "outcome": "BOT_CHECK",
+  "platformStatus": "PLATFORM_BLOCKED",
+  "hasNextPage": false,
+  "readablePostingCount": 0,
+  "postings": []
+}

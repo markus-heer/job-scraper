@@ -1,0 +1,59 @@
+# One page of the posting overview (10.1).
+#
+# Requirement 10.1 names what a row has to show — title, employer, work location, platform name,
+# publication date, Best_Commute_Time and Posting_Status — and 10.2, 10.3, 10.4 and 11.2 add the
+# Relevance_Verdict with its reason, where that verdict came from, and the "neu" marking. The
+# selection below is exactly that list and nothing beyond it, so a field nobody renders cannot
+# quietly become a field the Posting_Store has to keep answering for.
+#
+# Three of the fields are resolved rather than stored, and each one is taken from the API_Service
+# instead of being computed here:
+#
+# - `bestCommuteLabelDe` is the whole commute line — "38 Min. (Fahrrad)" or "Erreichbarkeit
+#   unbekannt" (8.4, 8.13, 10.1). The Web_App prints it unchanged; there is no German commute
+#   wording in `src/i18n/de.ts` to drift from it.
+# - `isNew` is the comparison with the most recently completed Scrape_Run (11.2, 11.4). Doing it in
+#   the browser would mean shipping the run identifier of every posting plus a second query for the
+#   latest run, and getting 11.6 — no completed run, so no marking at all — wrong by omission.
+# - `relevanceAssessedAt` is null exactly where no assessment produced the verdict, which is what
+#   separates "durch KI bewertet" from a verdict that is simply "nicht bewertet" (10.3, 15.1).
+#
+# `bestCommuteMinutes` travels next to the label because the "gut erreichbar" hint of 8.3 is a
+# comparison against the configured Commute_Threshold, and the threshold is a value of `appInfo`
+# (8.10) that the server does not fold into the label. The number is never rendered on its own.
+#
+# `interestFlag` is the one field here that no part of 10.1 asks for: it belongs to the control of
+# task 17.4 (`src/components/InterestFlagControl`), which renders the stored marking and sends its
+# opposite. It is selected *in this query* because that is what gives the row's `JobPosting` cache
+# entry an `interestFlag` field for the mutation answer to update — without it the control would
+# write into the cache and the row would keep showing the old marking (10.10).
+#
+# The three variables are pass-through: the filter bar (task 17.2) and the sorting and pagination
+# controls (task 17.3) own their values, and `JobPostingPage` carries `page`, `pageCount` and
+# `totalCount` back so that those controls and the empty states of task 17.5 read the same answer
+# from the Apollo cache instead of asking a second time.
+query JobPostings($filter: JobPostingFilterInput, $sort: JobPostingSortInput, $page: Int) {
+  jobPostings(filter: $filter, sort: $sort, page: $page) {
+    page
+    pageCount
+    totalCount
+    items {
+      id
+      title
+      employer
+      workLocation
+      platform
+      publishedAt
+      firstSeenAt
+      bestCommuteLabelDe
+      bestCommuteMinutes
+      postingStatus
+      interestFlag
+      isNew
+      relevanceVerdict
+      relevanceReason
+      relevanceSetManually
+      relevanceAssessedAt
+    }
+  }
+}

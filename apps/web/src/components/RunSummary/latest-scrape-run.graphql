@@ -1,0 +1,37 @@
+# The most recently completed Scrape_Run, for the summary block of the posting overview (11.5).
+#
+# Requirement 11.5 names six values: the start time, the end time and the Run_Outcome of that
+# Scrape_Run, plus the number of Job_Posting recorded for the first time in it, the number sighted
+# again, and the number stored in total. The selection below is those six and the run's `id`.
+#
+# The whole query is nullable, and that is the API_Service side of 11.6: `latestScrapeRun` is null
+# while the Posting_Store holds no Scrape_Run with the Run_Outcome "completed". The German hint that
+# criterion asks for *instead of* the counters is `de.postings.runSummary.noCompletedRun`, worded in
+# the Web_App, because there is nothing to report here but the absence.
+#
+# `runOutcomeLabelDe` rather than `runOutcome`: the Run_Outcome is a closed three-value vocabulary
+# and its German labels live in `apps/api/src/common/error-mapping.ts`, where the Log_Stream lines
+# and the rejected cancellation of 12.14 already use them. The Web_App prints the label unchanged —
+# the same arrangement as `bestCommuteLabelDe` on a Job_Posting — so there is no German Run_Outcome
+# wording in `src/i18n/de.ts` to drift from it. The enum value itself is not selected: nothing here
+# branches on it.
+#
+# `id` is selected although nothing prints it: it is the handle the Log_View link of task 18.3
+# needs, since `de.postings.runSummary.openLog` opens the log of *this* Scrape_Run, and it is what
+# lets the cache key the answer as an entity rather than as an anonymous object.
+#
+# The operation takes no variables, which is what makes the second reader of it free: the posting
+# overview route has to know whether a Scrape_Run has completed at all to tell the empty state of
+# 10.12 from the one of 2.8, and it reads that from the same cached field rather than from a second
+# request.
+query LatestScrapeRun {
+  latestScrapeRun {
+    id
+    startedAt
+    finishedAt
+    runOutcomeLabelDe
+    newPostings
+    resightedPostings
+    totalPostings
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "case": "result-list-page-1",
+  "provenance": "HAND_AUTHORED",
+  "description": "first Result_Page with four readable Job_Posting and a further page offered",
+  "pageNumber": 1,
+  "response": {
+    "status": 200,
+    "headers": {}
+  },
+  "outcome": "POSTINGS",
+  "platformStatus": "PAGE_LIMIT_REACHED",
+  "hasNextPage": true,
+  "readablePostingCount": 4,
+  "postings": [
+    {
+      "postingId": "9876543",
+      "title": "Projektmanagerin Pharma (m/w/d)",
+      "employer": "Beispiel Pharma GmbH",
+      "workLocation": "München",
+      "publishedAtText": "2026-10-24",
+      "sourceUrl": "https://www.stepstone.de/stellenangebote--Projektmanagerin-Pharma-Muenchen-Beispiel-Pharma-GmbH--9876543-inline.html",
+      "descriptionText": "Sie steuern klinische Entwicklungsprojekte von der Planung bis zur Zulassung und koordinieren interne wie externe Projektbeteiligte."
+    },
+    {
+      "postingId": "9876544",
+      "title": "Senior Projektmanagerin Life Science (m/w/d)",
+      "employer": "Muster Biotech AG",
+      "workLocation": "München, Garching",
+      "publishedAtText": "2026-10-26",
+      "sourceUrl": "https://www.stepstone.de/stellenangebote--Senior-Projektmanagerin-Life-Science-Muenchen-Muster-Biotech-AG--9876544-inline.html",
+      "descriptionText": "Für unsere Entwicklungsabteilung suchen wir eine erfahrene Projektmanagerin mit Erfahrung in GMP-regulierten Umgebungen."
+    },
+    {
+      "postingId": "9871122",
+      "title": "Projektleiterin Pharmaproduktion (m/w/d)",
+      "employer": "Alpha Labs SE",
+      "workLocation": "Martinsried bei München",
+      "publishedAtText": "vor 6 Tagen",
+      "sourceUrl": "https://www.stepstone.de/stellenangebote--Projektleiterin-Pharmaproduktion-Martinsried-Alpha-Labs-SE--9871122-inline.html",
+      "descriptionText": "Sie verantworten Technologietransfers zwischen Entwicklung und Produktion und führen ein interdisziplinäres Projektteam."
+    },
+    {
+      "postingId": "9869911",
+      "title": "Project Manager Clinical Operations (m/w/d)",
+      "employer": "Gamma Pharma Services GmbH",
+      "workLocation": "München (hybrid)",
+      "publishedAtText": "2026-10-18",
+      "sourceUrl": "https://www.stepstone.de/stellenangebote--Project-Manager-Clinical-Operations-Muenchen-Gamma-Pharma-Services-GmbH--9869911-inline.html",
+      "descriptionText": "In dieser Position planen und überwachen Sie multinationale Studien und berichten direkt an die Leitung Clinical Operations."
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+# Cancelling a running Scrape_Run from the Log_View (12.7, 12.14).
+#
+# Like `startScrapeRun`, this mutation answers both of its outcomes with a payload instead of an
+# exception, and `rejectedReasonDe` is what separates them: null means the cancellation took effect
+# (12.7), a sentence means it was rejected because that Scrape_Run is not running (12.14). The
+# Web_App therefore reads the payload rather than catching, and a thrown error means the mutation
+# never reached a resolver at all.
+#
+# `runOutcome` is the Run_Outcome in force *after* the call — "cancelled by user" for a cancellation
+# that took effect, otherwise the stored Run_Outcome that 12.14 asks to be returned. It is selected
+# as the enum value and not as German text, because nothing here prints it: the control passes it to
+# its caller, and the Log_View of task 18.3 shows the outcome in the summary of 12.10 with the
+# German label the API_Service supplies there. A rejected cancellation is explained by
+# `rejectedReasonDe`, which already names the cause and one next step (2.5).
+#
+# `runId` is selected so the answer identifies the Scrape_Run it is about, which is what lets the
+# caller ignore an answer for a run it is no longer displaying.
+mutation CancelScrapeRun($runId: ID!) {
+  cancelScrapeRun(runId: $runId) {
+    runId
+    runOutcome
+    rejectedReasonDe
+  }
+}

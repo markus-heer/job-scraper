@@ -1,0 +1,51 @@
+# The one Scrape_Run a Log_View is open on, with everything its summary states (7.4, 12.10).
+#
+# Requirement 12.10 names four things: the Run_Outcome, the runtime in minutes and seconds, and per
+# Platform the Platform_Status with the number of new and the number of updated Job_Posting. 7.4
+# adds the hint that the result list is incomplete where at least one Platform ended with a
+# Platform_Status other than "completed". The selection below is those four plus the two fields that
+# decide *whether* there is a summary to show at all.
+#
+# `scrapeRun(id:)` rather than `activeScrapeRun` or `latestScrapeRun`, and neither of those would
+# do: `activeScrapeRun` answers null the moment the run ends, which is the moment 12.10 asks for the
+# summary, and `latestScrapeRun` is the most recently *completed* run with the counters of 11.5 — a
+# different run, a different question, and blind to a run the user cancelled. The Log_View is
+# addressed by the identifier of its Scrape_Run (12.9), so the summary is read by the same
+# identifier.
+#
+# ## Why so many `…LabelDe`
+#
+# Run_Outcome and Platform_Status are closed vocabularies of 3 and 14 values, and their German
+# labels live in `apps/api/src/common/error-mapping.ts` because the Log_Stream lines of 12.3 already
+# say them. The ownership table in `src/i18n/de.ts` therefore records that the Web_App holds no
+# wording for either — it prints what arrives, the same arrangement as `bestCommuteLabelDe` on a
+# Job_Posting. The incompleteness hint of 7.4 is a whole sentence about stored values and arrives
+# the same way; it is nullable, and the absence is the information that nothing is missing.
+#
+# The enum values are selected next to two of the labels, because something here does branch on
+# them: `status` decides whether the summary is shown or the run is still going, and
+# `partialResult` marks a Platform whose result list was not read to the end (7.7).
+#
+# `startedAt` and `finishedAt` are what the runtime of 12.10 is computed from. It is computed in the
+# browser rather than read from the server because no field carries it: the Log_Stream summary line
+# states the runtime inside a German sentence, and a number parsed back out of a sentence is worse
+# than a subtraction of two timestamps.
+query EndOfRunSummary($runId: ID!) {
+  scrapeRun(id: $runId) {
+    id
+    status
+    startedAt
+    finishedAt
+    runOutcomeLabelDe
+    resultIncompleteHintDe
+    platformResults {
+      id
+      platform
+      platformStatus
+      platformStatusLabelDe
+      newPostings
+      updatedPostings
+      partialResult
+    }
+  }
+}

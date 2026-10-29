@@ -1,0 +1,260 @@
+/*
+ * The posting list of Requirement 10.1 and its three badges.
+ *
+ * A second stylesheet beside `src/styles/shell.css`, imported by `PostingList/index.tsx` rather
+ * than by the shell, for the same reason the shell imports its own: whoever renders this component
+ * gets its appearance. It reads the colour and spacing variables the shell declares on `:root`,
+ * which is sound because this component only ever renders inside that shell.
+ *
+ * Vitest runs with CSS processing off, so a component test loads this file as a no-op. The ratios
+ * below are what the axe checks of task 21.4 measure in a real browser.
+ *
+ * ## Contrast (2.3)
+ *
+ * Text is always `--colour-text` #111827 — no badge changes the text colour, only the surface
+ * behind it — so every pair stays far above the 4.5 : 1 of 2.3:
+ *
+ * | Pair                                      | Ratio     | Required |
+ * | ----------------------------------------- | --------- | -------- |
+ * | #111827 on `--badge-relevant` #dcfce7     | 16.2 : 1  | 4.5 : 1  |
+ * | #111827 on `--badge-uncertain` #fef3c7    | 15.9 : 1  | 4.5 : 1  |
+ * | #111827 on `--badge-not-assessed` #f3f4f6 | 16.1 : 1  | 4.5 : 1  |
+ * | #111827 on `--badge-not-relevant` #fee2e2 | 14.5 : 1  | 4.5 : 1  |
+ * | #111827 on `--badge-reachable` #e0f2fe    | 15.5 : 1  | 4.5 : 1  |
+ *
+ * The accent borders carry 4.9 : 1 or better against the page, which clears the 3 : 1 that applies
+ * to a non-text graphical boundary.
+ *
+ * ## No state by colour alone (2.4, 10.4)
+ *
+ * Every rule that adds a colour here sits under markup that already carries the same information as
+ * text: "neu" next to its star, "gut erreichbar" next to its check mark, and the verdict as the
+ * German word from `de.vocabulary.relevanceVerdict`. The four verdicts additionally differ in
+ * border *style* — solid, dashed, dotted, double — so the four surfaces are told apart in greyscale
+ * and in a high-contrast mode that drops background colours entirely.
+ */
+
+/* ---------------------------------------------------------------- the table */
+
+.posting-list {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.posting-list__caption {
+  padding-bottom: var(--space-2);
+  font-weight: 600;
+  text-align: left;
+}
+
+.posting-list th,
+.posting-list td {
+  border-bottom: 1px solid var(--colour-border);
+  padding: var(--space-2);
+  vertical-align: top;
+}
+
+.posting-list thead th {
+  border-bottom-width: 2px;
+  white-space: nowrap;
+}
+
+/* While a refetch is in flight the rows are the previous answer; say so without hiding them. */
+.posting-list[aria-busy='true'] tbody {
+  opacity: 0.6;
+}
+
+.posting-list__loading {
+  margin: 0;
+}
+
+/* The row header is the job title, so it is left-aligned like a cell rather than centred. */
+.posting-row__title {
+  text-align: left;
+}
+
+.posting-row__title-text {
+  display: block;
+  font-weight: 600;
+}
+
+.posting-row__commute,
+.posting-row__relevance {
+  display: table-cell;
+}
+
+/*
+ * The "Aktionen" cell of 10.10. The Interest_Flag control stacks a state line, a button, a live
+ * region and — for a marked Job_Posting — the hint of 10.11, so the cell is given room rather than
+ * letting the button caption wrap at every width.
+ */
+.posting-row__actions {
+  min-width: 14rem;
+}
+
+/* The link into the detail view of 10.8, above the marking control it shares the cell with. */
+.posting-row__detail-link {
+  margin-bottom: var(--space-2);
+}
+
+/* ---------------------------------------------------------------- badges */
+
+/*
+ * The shared shape of the "neu" marking (11.2) and the "gut erreichbar" hint (8.3): a symbol, a
+ * word, a border and a surface. `inline-flex` keeps the symbol and the word on one line so they
+ * read as one badge, and `margin-top` separates the badge from the value above it when it follows a
+ * block.
+ */
+.badge {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  margin-top: var(--space-1);
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius);
+  padding: 0 var(--space-2);
+  white-space: nowrap;
+}
+
+.badge__symbol {
+  font-size: 1.1em;
+  line-height: 1;
+}
+
+.badge--new {
+  border-color: #a16207;
+  background-color: #fef3c7;
+  font-weight: 600;
+}
+
+.badge--well-reachable {
+  border-color: var(--colour-accent);
+  background-color: #e0f2fe;
+}
+
+/* ---------------------------------------------------------------- commute */
+
+.commute-badge__label {
+  display: block;
+}
+
+/* ---------------------------------------------------------------- relevance */
+
+/*
+ * The verdict of 10.4 as text first. The surface and the border style are two further, independent
+ * carriers of the same distinction; neither is needed to read the verdict.
+ */
+.relevance-badge {
+  display: inline-block;
+  border: 2px solid var(--colour-border);
+  border-radius: var(--radius);
+  padding: 0 var(--space-2);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.relevance-badge--relevant {
+  border-style: solid;
+  border-color: #15803d;
+  background-color: #dcfce7;
+}
+
+.relevance-badge--uncertain {
+  border-style: dashed;
+  border-color: #a16207;
+  background-color: #fef3c7;
+}
+
+.relevance-badge--not-assessed {
+  border-style: dotted;
+  border-color: var(--colour-border);
+  background-color: #f3f4f6;
+}
+
+.relevance-badge--not-relevant {
+  border-style: double;
+  border-color: var(--colour-danger);
+  background-color: #fee2e2;
+}
+
+/* Where the verdict came from (10.3): a plain line under the badge, not a second coloured mark. */
+.relevance-badge__origin {
+  display: block;
+  margin-top: var(--space-1);
+  font-size: 0.875rem;
+}
+
+/* The Relevance_Reason (10.2), written by the AI_Provider and shown under its own heading. */
+.relevance-badge__reason {
+  margin: var(--space-1) 0 0;
+  max-width: 24rem;
+}
+
+.relevance-badge__reason dt {
+  font-weight: 600;
+}
+
+.relevance-badge__reason dd {
+  margin: 0;
+}
+
+/*
+ * The manual Relevance_Verdict control of 15.15, below the badge that states the verdict in force.
+ *
+ * A `fieldset` because the three buttons are one group with one `legend` naming it; the default
+ * border and padding of a fieldset are reset so the group reads as part of the cell rather than as a
+ * form inside a table.
+ *
+ * Nothing here carries state by colour (2.4): the stored verdict is the badge above, and the pending
+ * and confirmed states are text in the live region. The busy state is the one rule that needs a
+ * selector of its own — the buttons are marked `aria-disabled` rather than `disabled` so they keep
+ * the focus the user put on them, and `.control:disabled` therefore never matches them. The focus
+ * ring of `.control` is untouched, which is what keeps every stop keyboard-visible (2.3).
+ */
+.verdict-control {
+  margin: var(--space-2) 0 0;
+  border: 0;
+  padding: 0;
+  max-width: 24rem;
+}
+
+.verdict-control__heading {
+  padding: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.verdict-control__reason-label {
+  display: block;
+  font-size: 0.875rem;
+}
+
+.verdict-control__reason {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  font: inherit;
+}
+
+.verdict-control__reason-hint {
+  margin: var(--space-1) 0 0;
+  font-size: 0.875rem;
+}
+
+.verdict-control__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+}
+
+.verdict-control__live {
+  margin: var(--space-1) 0 0;
+}
+
+.verdict-control__action[aria-disabled='true'] {
+  border-color: var(--colour-border);
+  color: var(--colour-border);
+  cursor: progress;
+}

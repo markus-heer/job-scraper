@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "_comment": "Type-check configuration: covers the sources and emits nothing. The build uses tsconfig.build.json, which turns emit back on. vitest.config.mts stays out of the program on purpose: this package compiles to CommonJS with Node10 resolution, which cannot read the `exports` map of `vitest/config`.",
+  "extends": "@job-scraper/typescript-config/nest.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": ["src"]
+}

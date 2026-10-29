@@ -1,0 +1,38 @@
+# The manual Relevance_Verdict write of Requirement 15.15.
+#
+# `reasonDe` is nullable and is sent as null when the user typed nothing. That is not an omission:
+# the API_Service writes the value through to `JobPosting.relevanceReason`, so a null *clears* the
+# reason — which is correct, because the sentence that was there justified the assessment this
+# verdict has just replaced. A reason explaining a verdict nobody holds any more would be worse than
+# no reason at all.
+#
+# ## Why these five fields come back
+#
+# `id` is what lets the answer land in the normalized cache entry of this Job_Posting; Apollo writes
+# the other four onto `JobPosting:<id>`, every list query holding a reference re-renders, and the
+# row shows the stored verdict without a second read.
+#
+# The other four are exactly what `RelevanceBadge` renders, and all four change in this one write:
+#
+# - `relevanceVerdict` is the new verdict.
+# - `relevanceReason` is the user's note, or null.
+# - `relevanceSetManually` becomes true, which is what the badge renders as "manuell gesetzt" (10.3).
+# - `relevanceAssessedAt` becomes null, because no model produced this verdict (15.15) — and that is
+#   what keeps "durch KI bewertet" from being claimed for it.
+#
+# `relevanceModel` is cleared by the same write but is not selected, because nothing in the Web_App
+# renders it: a field read back into the cache that no component reads is a column the Posting_Store
+# has to keep answering for.
+#
+# The row keeps its position in the list until the next read, the same way a marked Job_Posting stays
+# visible until then (10.11): the order of 10.7 is a sort rule on the server, and re-reading the page
+# here would move the row out from under the control the user just pressed.
+mutation SetRelevanceVerdict($id: ID!, $verdict: RelevanceVerdict!, $reasonDe: String) {
+  setRelevanceVerdict(id: $id, verdict: $verdict, reasonDe: $reasonDe) {
+    id
+    relevanceVerdict
+    relevanceReason
+    relevanceSetManually
+    relevanceAssessedAt
+  }
+}

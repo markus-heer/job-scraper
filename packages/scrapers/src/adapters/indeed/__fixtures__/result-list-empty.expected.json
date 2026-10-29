@@ -1,0 +1,15 @@
+{
+  "case": "result-list-empty",
+  "provenance": "HAND_AUTHORED",
+  "description": "the search matched nothing and Indeed says so",
+  "pageNumber": 1,
+  "response": {
+    "status": 200,
+    "headers": {}
+  },
+  "outcome": "EMPTY_RESULT_LIST",
+  "platformStatus": "COMPLETED",
+  "hasNextPage": false,
+  "readablePostingCount": 0,
+  "postings": []
+}

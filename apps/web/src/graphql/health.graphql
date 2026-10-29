@@ -1,0 +1,9 @@
+# Liveness probe of the API_Service.
+#
+# The one operation that belongs to the transport rather than to a view: it answers whether the
+# GraphQL endpoint behind the Vite proxy is reachable, which is what makes it useful for the
+# connection check of the Apollo Client setup and for the generated-hook test. Every other
+# operation lives next to the component that sends it.
+query Health {
+  health
+}

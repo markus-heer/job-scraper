@@ -1,0 +1,88 @@
+{
+  "case": "relative-dates",
+  "provenance": "HAND_AUTHORED",
+  "description": "every relative publication date wording, plus a datePosted stated as meta content and an English wording that states no date",
+  "pageNumber": 1,
+  "response": {
+    "status": 200,
+    "headers": {}
+  },
+  "outcome": "POSTINGS",
+  "platformStatus": "COMPLETED",
+  "hasNextPage": false,
+  "readablePostingCount": 8,
+  "postings": [
+    {
+      "postingId": "412401",
+      "title": "Projektmanagerin Pharma (m/w/d)",
+      "employer": "Iota Pharma GmbH",
+      "workLocation": "München",
+      "publishedAtText": "heute",
+      "sourceUrl": "https://www.jobvector.de/jobs/?jobId=412401",
+      "descriptionText": null
+    },
+    {
+      "postingId": "412402",
+      "title": "Projektleiterin Entwicklung (m/w/d)",
+      "employer": "Kappa Labs GmbH",
+      "workLocation": "München",
+      "publishedAtText": "gestern",
+      "sourceUrl": "https://www.jobvector.de/jobs/?jobId=412402",
+      "descriptionText": null
+    },
+    {
+      "postingId": "412403",
+      "title": "Project Manager CMC (f/m/d)",
+      "employer": "Lambda Biotech AG",
+      "workLocation": "München",
+      "publishedAtText": "vor 5 Stunden",
+      "sourceUrl": "https://www.jobvector.de/jobs/?jobId=412403",
+      "descriptionText": null
+    },
+    {
+      "postingId": "412404",
+      "title": "Projektmanagerin Klinische Studien (m/w/d)",
+      "employer": "My Research GmbH",
+      "workLocation": "München",
+      "publishedAtText": "vor 3 Tagen",
+      "sourceUrl": "https://www.jobvector.de/stellenangebote/412404-projektmanagerin-klinische-studien/",
+      "descriptionText": null
+    },
+    {
+      "postingId": "412405",
+      "title": "Teilprojektleiterin Produktion (m/w/d)",
+      "employer": "Ny Pharma SE",
+      "workLocation": "München",
+      "publishedAtText": "vor einer Woche",
+      "sourceUrl": "https://www.jobvector.de/jobs/?jobId=412405",
+      "descriptionText": null
+    },
+    {
+      "postingId": "412406",
+      "title": "Project Lead Medical Affairs (f/m/d)",
+      "employer": "Xi Health GmbH",
+      "workLocation": "München",
+      "publishedAtText": "vor mehr als 30 Tagen",
+      "sourceUrl": "https://www.jobvector.de/jobs/?jobId=412406",
+      "descriptionText": null
+    },
+    {
+      "postingId": "412407",
+      "title": "Projektmanagerin Pharmakovigilanz (m/w/d)",
+      "employer": "Omikron Pharma GmbH",
+      "workLocation": "München",
+      "publishedAtText": "2026-10-15",
+      "sourceUrl": "https://www.jobvector.de/jobs/?jobId=412407",
+      "descriptionText": null
+    },
+    {
+      "postingId": "412408",
+      "title": "Project Manager Supply Chain (f/m/d)",
+      "employer": "Pi Logistics GmbH",
+      "workLocation": "München",
+      "publishedAtText": "posted recently",
+      "sourceUrl": "https://www.jobvector.de/en/jobs/?jobId=412408",
+      "descriptionText": null
+    }
+  ]
+}

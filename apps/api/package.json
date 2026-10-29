@@ -1,0 +1,52 @@
+{
+  "name": "@job-scraper/api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "API_Service: NestJS GraphQL backend and Posting_Store access layer",
+  "license": "UNLICENSED",
+  "scripts": {
+    "postinstall": "prisma generate",
+    "prisma:format": "prisma format",
+    "prisma:validate": "prisma validate",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy",
+    "build": "tsc -p tsconfig.build.json",
+    "schema:generate": "node dist/graphql/emit-schema.js",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint . --fix",
+    "test": "vitest",
+    "test:integration": "vitest --config vitest.integration.config.mts",
+    "test:live": "vitest --run live.smoke",
+    "start": "node dist/main.js"
+  },
+  "dependencies": {
+    "@apollo/server": "5.5.1",
+    "@as-integrations/express5": "1.1.2",
+    "@job-scraper/domain": "workspace:*",
+    "@job-scraper/scrapers": "workspace:*",
+    "@nestjs/apollo": "13.4.5",
+    "@nestjs/common": "11.2.7",
+    "@nestjs/core": "11.2.7",
+    "@nestjs/graphql": "13.4.5",
+    "@nestjs/platform-express": "11.2.7",
+    "@prisma/client": "6.19.3",
+    "dataloader": "2.2.3",
+    "graphql": "16.14.2",
+    "reflect-metadata": "0.2.2",
+    "rxjs": "7.8.2",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@job-scraper/eslint-config": "workspace:*",
+    "@job-scraper/typescript-config": "workspace:*",
+    "@testcontainers/postgresql": "12.2.1",
+    "@types/node": "22.20.5",
+    "eslint": "10.13.0",
+    "fast-check": "4.10.2",
+    "prisma": "6.19.3",
+    "prisma-json-types-generator": "3.6.2",
+    "typescript": "5.9.3",
+    "vitest": "5.0.5"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "Library (ESM package)",
+  "_comment": "For internal packages such as @job-scraper/domain and @job-scraper/scrapers: plain ESM, emits declarations so that apps type-check against the built output.",
+  "extends": "./base.json",
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "declaration": true,
+    "declarationMap": true,
+    "verbatimModuleSyntax": true
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "case": "relative-dates",
+  "provenance": "HAND_AUTHORED",
+  "description": "every relative publication date wording",
+  "pageNumber": 1,
+  "response": {
+    "status": 200,
+    "headers": {}
+  },
+  "outcome": "POSTINGS",
+  "platformStatus": "COMPLETED",
+  "hasNextPage": false,
+  "readablePostingCount": 8,
+  "postings": [
+    {
+      "postingId": "9850001",
+      "title": "Projektmanagerin Pharma (m/w/d)",
+      "employer": "Iota Pharma GmbH",
+      "workLocation": "München",
+      "publishedAtText": "heute",
+      "sourceUrl": "https://www.stepstone.de/stellenangebote--Projektmanagerin-Pharma-Muenchen-Iota-Pharma-GmbH--9850001-inline.html",
+      "descriptionText": null
+    },
+    {
+      "postingId": "9850002",
+      "title": "Projektleiterin Entwicklung (m/w/d)",
+      "employer": "Kappa Labs GmbH",
+      "workLocation": "München",
+      "publishedAtText": "gestern",
+      "sourceUrl": "https://www.stepstone.de/stellenangebote--Projektleiterin-Entwicklung-Muenchen-Kappa-Labs-GmbH--9850002-inline.html",
+      "descriptionText": null
+    },
+    {
+      "postingId": "9850003",
+      "title": "Project Manager CMC (m/w/d)",
+      "employer": "Lambda Biotech AG",
+      "workLocation": "München",
+      "publishedAtText": "vor 5 Stunden",
+      "sourceUrl": "https://www.stepstone.de/stellenangebote--Project-Manager-CMC-Muenchen-Lambda-Biotech-AG--9850003-inline.html",
+      "descriptionText": null
+    },
+    {
+      "postingId": "9850004",
+      "title": "Projektmanagerin Klinische Studien (m/w/d)",
+      "employer": "My Research GmbH",
+      "workLocation": "München",
+      "publishedAtText": "vor 3 Tagen",
+      "sourceUrl": "https://www.stepstone.de/stellenangebote--Projektmanagerin-Klinische-Studien-Muenchen-My-Research-GmbH--9850004-inline.html",
+      "descriptionText": null
+    },
+    {
+      "postingId": "9850005",
+      "title": "Teilprojektleiterin Produktion (m/w/d)",
+      "employer": "Ny Pharma SE",
+      "workLocation": "München",
+      "publishedAtText": "vor einer Woche",
+      "sourceUrl": "https://www.stepstone.de/stellenangebote--Teilprojektleiterin-Produktion-Muenchen-Ny-Pharma-SE--9850005-inline.html",
+      "descriptionText": null
+    },
+    {
+      "postingId": "9850006",
+      "title": "Project Lead Medical Affairs (m/w/d)",
+      "employer": "Xi Health GmbH",
+      "workLocation": "München",
+      "publishedAtText": "vor mehr als 30 Tagen",
+      "sourceUrl": "https://www.stepstone.de/stellenangebote--Project-Lead-Medical-Affairs-Muenchen-Xi-Health-GmbH--9850006-inline.html",
+      "descriptionText": null
+    },
+    {
+      "postingId": "9850007",
+      "title": "Projektmanagerin Pharmakovigilanz (m/w/d)",
+      "employer": "Omikron Pharma GmbH",
+      "workLocation": "München",
+      "publishedAtText": "2026-10-15",
+      "sourceUrl": "https://www.stepstone.de/stellenangebote--Projektmanagerin-Pharmakovigilanz-Muenchen-Omikron-Pharma-GmbH--9850007-inline.html",
+      "descriptionText": null
+    },
+    {
+      "postingId": "9850008",
+      "title": "Projektmanagerin Supply Chain (m/w/d)",
+      "employer": "Pi Logistics GmbH",
+      "workLocation": "München",
+      "publishedAtText": "kürzlich veröffentlicht",
+      "sourceUrl": "https://www.stepstone.de/stellenangebote--Projektmanagerin-Supply-Chain-Muenchen-Pi-Logistics-GmbH--9850008-inline.html",
+      "descriptionText": null
+    }
+  ]
+}

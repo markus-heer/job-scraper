@@ -1,0 +1,15 @@
+{
+  "case": "layout-changed",
+  "provenance": "HAND_AUTHORED",
+  "description": "three job cards in markup no candidate selector matches, above a stated job count",
+  "pageNumber": 1,
+  "response": {
+    "status": 200,
+    "headers": {}
+  },
+  "outcome": "LAYOUT_UNKNOWN",
+  "platformStatus": "PAGE_LAYOUT_UNKNOWN",
+  "hasNextPage": true,
+  "readablePostingCount": 0,
+  "postings": []
+}

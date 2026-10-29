@@ -1,0 +1,38 @@
+/*
+ * "Log öffnen", the fourth control of 2.2.
+ *
+ * Imported by `./index.tsx`, so the stylesheet arrives with the component wherever it is rendered,
+ * the same arrangement as `../run-controls.css` next to "Suchlauf starten".
+ *
+ * Nothing here carries state by colour alone (2.4): the blocked control is explained by the German
+ * sentence below it, and the rule on it repeats what that sentence already says. Vitest runs with
+ * CSS processing off, so the component tests see none of this: contrast is checked by the axe run of
+ * task 21.4 and the focus indicator by the measurement of task 21.5
+ * (`apps/web/e2e/focus-and-keyboard.spec.ts`), which is where the ring of this control in its
+ * blocked state is measured.
+ */
+
+.open-log {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.open-log__hint {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+/*
+ * The blocked state. The control is marked `aria-disabled` rather than `disabled` so it keeps the
+ * focus the user put on it (2.3), which means `.control:disabled` never matches it and this state
+ * needs a selector of its own. `cursor: not-allowed` rather than the `cursor: progress` of
+ * "Suchlauf starten": nothing is in flight here, there is simply no Scrape_Run to open a log of.
+ */
+.open-log__action[aria-disabled='true'] {
+  border-color: var(--colour-border);
+  background-color: var(--colour-page);
+  color: var(--colour-border);
+  cursor: not-allowed;
+}

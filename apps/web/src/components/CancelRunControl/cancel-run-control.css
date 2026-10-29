@@ -1,0 +1,39 @@
+/*
+ * "Suchlauf abbrechen" and the live region that reports what became of the request (12.6, 12.7).
+ *
+ * Imported by `src/components/CancelRunControl/index.tsx`, so the stylesheet arrives with the
+ * component wherever it is mounted. That matters here more than for most components: 12.6 places
+ * this control inside the Log_View, which is task 18.3 and renders no other run control, so rules
+ * kept next to "Suchlauf starten" would simply not be loaded where this control actually stands.
+ *
+ * Vitest runs with CSS processing off, so the component tests see none of this; the contrast checks
+ * belong to the axe run of task 21.4. The focus indicator is measured by task 21.5
+ * (`apps/web/e2e/focus-and-keyboard.spec.ts`) — but not on *this* control: it is only on the screen
+ * while a Scrape_Run is running, which is the one state no seeding produces and a fixture-mode run
+ * is too short to hold still for. The spec says so, and measures the same `aria-disabled` ring on
+ * the blocked "Log öffnen" of the landing page instead. Nothing below carries state by colour alone
+ * (2.4) — every state of the control is a sentence in the markup.
+ */
+
+.cancel-run {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.cancel-run__live {
+  margin: 0;
+}
+
+/*
+ * The button is marked `aria-disabled` rather than `disabled` so it keeps the focus the user put on
+ * it (2.3), which means `.control:disabled` never matches it and the busy state needs a selector of
+ * its own. `cursor: progress` says the same thing the live region says.
+ */
+.cancel-run__action[aria-disabled='true'] {
+  border-color: var(--colour-border);
+  background-color: var(--colour-page);
+  color: var(--colour-border);
+  cursor: progress;
+}

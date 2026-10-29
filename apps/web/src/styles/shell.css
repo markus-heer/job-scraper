@@ -1,0 +1,492 @@
+/*
+ * The one stylesheet of the Web_App shell (2.3).
+ *
+ * Imported by `src/routes/__root.tsx` rather than by `src/main.tsx`, so that the shell carries its
+ * own appearance: whoever renders the root route gets the skip link, the focus indicator and the
+ * contrast of the shell, and nothing has to be remembered at the entry point. Vitest runs with CSS
+ * processing off, so a component test loads this file as a no-op — the accessibility assertions of
+ * task 16.6 are about markup and focus order, while the contrast ratios below are what the axe
+ * checks of task 21.4 measure in a real browser.
+ *
+ * The colours are chosen for the three ratios Requirement 2.3 pins, measured against the surface
+ * each one actually sits on. Every number below is the WCAG 2.1 relative-luminance ratio of the two
+ * colours; the first two were corrected in task 21.5, where they turned out to understate the pair
+ * they describe — and the second of them disagreed with the same pair in
+ * `../components/PostingList/posting-list.css`, which had it right.
+ *
+ * | Pair                                             | Ratio    | Required |
+ * | ------------------------------------------------ | -------- | -------- |
+ * | `--colour-text` #111827 on `--colour-page` #fff  | 17.7 : 1 | 4.5 : 1  |
+ * | `--colour-text` on `--colour-surface` #f3f4f6     | 16.1 : 1 | 4.5 : 1  |
+ * | #fff on `--colour-accent` #0b4f9c                 |  8.0 : 1 | 4.5 : 1  |
+ * | `--colour-danger` #9b1c1c on #fff                 |  8.2 : 1 | 4.5 : 1  |
+ * | The focus ring, `--colour-accent` on #fff         |  8.0 : 1 | 3.0 : 1  |
+ *
+ * The last row is the one 2.3 asks for on the *focused* control, and it is the one row that is
+ * measured in a browser rather than computed here: `apps/web/e2e/focus-and-keyboard.spec.ts` tabs to
+ * every control of every state the E2E suite reaches and reads what Chromium resolved. It found
+ * 8.04 : 1 on all of them. There is no `--colour-focus` custom property, which an earlier version of
+ * this table named: the ring takes `--colour-accent`, and a second variable of the same value would
+ * be a second place to change it.
+ *
+ * The focus ring uses `outline-offset`, which is not cosmetic: on a filled control the ring would
+ * otherwise sit on `--colour-accent` and lose its contrast, so it is pushed out onto the page
+ * background where the 8.0 : 1 above applies.
+ *
+ * No state in this file is expressed through colour alone (2.4) — every rule that adds a colour
+ * also keeps the text, the border or the symbol that carries the same information.
+ */
+
+:root {
+  --colour-page: #ffffff;
+  --colour-surface: #f3f4f6;
+  --colour-text: #111827;
+  --colour-border: #4b5563;
+  --colour-accent: #0b4f9c;
+  --colour-accent-text: #ffffff;
+  --colour-danger: #9b1c1c;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 1rem;
+  --space-4: 1.5rem;
+
+  --radius: 0.25rem;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  /* Respect the browser font size instead of pinning a pixel value (2.3). */
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  line-height: 1.5;
+}
+
+body {
+  margin: 0;
+  background-color: var(--colour-page);
+  color: var(--colour-text);
+}
+
+/*
+ * One focus indicator for every focusable element, declared once.
+ *
+ * `:focus-visible` rather than `:focus` so that a mouse click does not leave a ring behind, while
+ * every keyboard traversal shows one — which is the half of 2.3 that matters for operation without
+ * a mouse.
+ */
+:focus-visible {
+  outline: 3px solid var(--colour-accent);
+  outline-offset: 2px;
+}
+
+/* The skip link of 2.3: off-screen until focused, first in the tab order either way. */
+.skip-link {
+  position: absolute;
+  top: var(--space-2);
+  left: -100vw;
+  z-index: 10;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius);
+  background-color: var(--colour-accent);
+  color: var(--colour-accent-text);
+  text-decoration: underline;
+}
+
+.skip-link:focus {
+  left: var(--space-2);
+}
+
+.app-shell {
+  margin: 0 auto;
+  max-width: 60rem;
+  padding: var(--space-3);
+}
+
+.app-shell__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-bottom: var(--space-3);
+}
+
+.app-shell__main {
+  padding-top: var(--space-3);
+}
+
+/* `tabindex="-1"` makes the skip link land here; it must not draw a ring of its own. */
+.app-shell__main:focus {
+  outline: none;
+}
+
+.app-shell__home-link {
+  color: var(--colour-accent);
+}
+
+/*
+ * The notice of 14.8. `padding` plus a border keeps it legible without relying on the background
+ * colour, and it sits in the header above the main landmark so it is the first thing in the
+ * viewport — "visible without scrolling" is a question of document order here, because the Web_App
+ * runs in one browser window on one developer machine.
+ */
+.private-use-notice {
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius);
+  background-color: var(--colour-surface);
+  padding: var(--space-3);
+}
+
+.private-use-notice__heading {
+  margin: 0 0 var(--space-2);
+  font-size: 1rem;
+}
+
+.private-use-notice p {
+  margin: 0 0 var(--space-2);
+}
+
+.private-use-notice__settings {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-1) var(--space-3);
+  margin: 0;
+}
+
+.private-use-notice__settings dt {
+  font-weight: 600;
+}
+
+.private-use-notice__settings dd {
+  margin: 0;
+}
+
+.landing__title {
+  margin: 0 0 var(--space-1);
+}
+
+.landing__heading {
+  margin: 0 0 var(--space-4);
+  font-size: 1.25rem;
+}
+
+.landing__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/*
+ * The four controls of 2.2, sized so they are hit targets rather than words in a sentence. Both a
+ * `button` and a router `Link` carry this class, which is why the rule sets the properties an
+ * anchor does not inherit from the button default style.
+ */
+.control {
+  display: inline-block;
+  border: 2px solid var(--colour-accent);
+  border-radius: var(--radius);
+  background-color: var(--colour-page);
+  padding: var(--space-2) var(--space-3);
+  color: var(--colour-accent);
+  font: inherit;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.control--primary {
+  background-color: var(--colour-accent);
+  color: var(--colour-accent-text);
+}
+
+.control:disabled {
+  border-color: var(--colour-border);
+  color: var(--colour-border);
+  cursor: not-allowed;
+}
+
+/*
+ * The error block of 2.5. The left border and the heading carry the state, not the colour: with
+ * colour perception removed the heading still reads "Es ist ein Fehler aufgetreten" (2.4).
+ */
+.error-notice {
+  border: 1px solid var(--colour-danger);
+  border-left-width: var(--space-1);
+  border-radius: var(--radius);
+  padding: var(--space-3);
+}
+
+.error-notice__heading {
+  margin: 0 0 var(--space-2);
+  color: var(--colour-danger);
+  font-size: 1.125rem;
+}
+
+.error-notice__message {
+  margin: 0 0 var(--space-3);
+}
+
+.error-notice__action {
+  margin: 0;
+}
+
+/*
+ * The sort selection of 10.7. The `fieldset` border and the `legend` carry the grouping, so the two
+ * controls read as one setting without relying on a background colour.
+ */
+.sort-select {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-3);
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius);
+  padding: var(--space-2) var(--space-3) var(--space-3);
+}
+
+.sort-select__legend {
+  padding: 0 var(--space-1);
+  font-weight: 600;
+}
+
+.sort-select__control {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.sort-select__label {
+  font-weight: 600;
+}
+
+/* `font: inherit` keeps the control at the browser font size (2.3) instead of the UA default. */
+.sort-select__select {
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius);
+  background-color: var(--colour-page);
+  padding: var(--space-1) var(--space-2);
+  color: var(--colour-text);
+  font: inherit;
+}
+
+/*
+ * The page navigation of 10.9. The disabled control keeps the caption and the border of `.control`
+ * and is marked `disabled` in the markup, so the state is readable without colour perception (2.4).
+ */
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+}
+
+.pagination__position {
+  margin: 0;
+  font-weight: 600;
+}
+
+.pagination__total {
+  margin: 0;
+}
+
+/*
+ * The Interest_Flag control of 10.10, one per Job_Posting row.
+ *
+ * Nothing here carries state by colour (2.4): the stored marking is the German label next to the
+ * field name, the pending and the confirmed state are text in the live region, and the refused
+ * write uses the `.error-notice` block above. The busy state is the one rule that needs a selector
+ * of its own — the control is marked `aria-disabled` rather than `disabled` so that it keeps the
+ * focus the user put on it, and `.control:disabled` therefore never matches it.
+ */
+.marking {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.marking__state,
+.marking__live,
+.marking__hint {
+  margin: 0;
+}
+
+.marking__state-label {
+  font-weight: 600;
+}
+
+.marking__hint {
+  font-size: 0.875rem;
+}
+
+.marking__action[aria-disabled='true'] {
+  border-color: var(--colour-border);
+  color: var(--colour-border);
+  cursor: progress;
+}
+
+/*
+ * The filter bar of 10.5.
+ *
+ * Nothing here carries state: the filters are native checkboxes, selects and date fields, so the
+ * checked and selected states are the browser's own and are readable without colour (2.4). The
+ * rules below are layout plus the two things a form needs to stay legible — a visible boundary per
+ * filter group and a label that reads as a label.
+ *
+ * `legend` keeps its default placement on the fieldset border rather than being pulled out of the
+ * box: it is the group's visible label (2.3), and the border is what ties it to its checkboxes.
+ */
+.filter-bar {
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius);
+  padding: var(--space-3);
+}
+
+.filter-bar__heading {
+  margin: 0 0 var(--space-3);
+  font-size: 1.125rem;
+}
+
+.filter-bar__fields {
+  display: grid;
+  /* One column on a narrow window, more as the width allows; no media query needed. */
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: var(--space-3);
+}
+
+.filter-bar__group {
+  margin: 0;
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius);
+  padding: var(--space-2) var(--space-3) var(--space-3);
+}
+
+.filter-bar__legend {
+  padding: 0 var(--space-1);
+  font-weight: 600;
+}
+
+/* The hint of 10.5 and of the recording period: smaller, but still at the 4.5 : 1 text contrast. */
+.filter-bar__hint {
+  margin: 0 0 var(--space-2);
+  color: var(--colour-text);
+  font-size: 0.875rem;
+}
+
+.filter-bar__option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) 0;
+}
+
+.filter-bar__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.filter-bar__label {
+  font-weight: 600;
+}
+
+.filter-bar__select,
+.filter-bar__date {
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius);
+  background-color: var(--colour-page);
+  padding: var(--space-2);
+  color: var(--colour-text);
+  font: inherit;
+}
+
+.filter-bar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding-top: var(--space-3);
+}
+
+/*
+ * The empty states of 2.8, 10.12 and 10.13.
+ *
+ * Deliberately not styled like `.error-notice`: an empty list is not a failure, so the block uses
+ * the neutral border rather than the danger colour. The heading and the sentence carry the whole
+ * state as text (2.4); nothing here is readable only by its colour.
+ */
+.empty-state {
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius);
+  padding: var(--space-3);
+}
+
+.empty-state__heading {
+  margin: 0 0 var(--space-2);
+  font-size: 1.125rem;
+}
+
+.empty-state__hint {
+  margin: 0 0 var(--space-3);
+}
+
+.empty-state__action {
+  margin: 0;
+}
+
+/*
+ * The run summary of 11.5, and the hint 11.6 shows in its place.
+ *
+ * A two-column description list: the label of every value stands next to it rather than above it,
+ * so the six values of 11.5 read as six pairs. One column on a narrow window, where two would break
+ * the longer labels across lines.
+ */
+.run-summary {
+  margin: 0 0 var(--space-3);
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius);
+  padding: var(--space-3);
+}
+
+.run-summary__heading {
+  margin: 0 0 var(--space-2);
+  font-size: 1.125rem;
+}
+
+.run-summary__hint,
+.run-summary__loading {
+  margin: 0;
+}
+
+.run-summary__values {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-1) var(--space-3);
+  margin: 0;
+}
+
+@media (width <= 30rem) {
+  .run-summary__values {
+    grid-template-columns: 1fr;
+  }
+}
+
+.run-summary__values dt {
+  margin: 0;
+  font-weight: 600;
+}
+
+.run-summary__values dd {
+  margin: 0;
+}

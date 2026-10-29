@@ -980,10 +980,20 @@ export class PostingRepository {
     runStartedAt: Date,
   ): Promise<UpsertResult>;
 
-  /** Sets "no longer listed" for absent postings; only called when run and Platform both completed (9.5, 9.7). */
+  /**
+   * Sets "no longer listed" for absent postings, and only when both the Run_Outcome and the
+   * Platform_Status are "completed" (9.5, 9.7). The gate is checked inside the method, not left to
+   * the caller: a wrongly swept Posting_Status hides a Job_Posting from the default view without
+   * failing anywhere. A refused sweep is not an error and returns 0. A Partial_Result needs no term
+   * of its own, since its Platform_Status is never "completed" (Glossary, 7.7). Returns the number
+   * of Job_Posting whose Posting_Status the sweep changed.
+   */
   async markAbsentAsNoLongerListed(input: {
     readonly platform: Platform;
     readonly seenPostingIds: readonly string[];
+    /** Null while the Scrape_Run is still running; never opens the gate. */
+    readonly runOutcome: RunOutcome | null;
+    readonly platformStatus: PlatformStatus;
   }): Promise<number>;
 
   async findPage(input: {

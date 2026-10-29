@@ -1,0 +1,61 @@
+{
+  "case": "result-list-page-2",
+  "provenance": "HAND_AUTHORED",
+  "description": "last Result_Page, three of five cards missing one of the fields of 6.5",
+  "pageNumber": 2,
+  "response": {
+    "status": 200,
+    "headers": {}
+  },
+  "outcome": "POSTINGS",
+  "platformStatus": "COMPLETED",
+  "hasNextPage": false,
+  "readablePostingCount": 2,
+  "postings": [
+    {
+      "postingId": "9865500",
+      "title": "Teilprojektleiterin Qualitätssicherung (m/w/d)",
+      "employer": "Delta Pharm GmbH",
+      "workLocation": "München",
+      "publishedAtText": "vor 12 Tagen",
+      "sourceUrl": "https://www.stepstone.de/stellenangebote--Teilprojektleiterin-Qualitaetssicherung-Muenchen-Delta-Pharm-GmbH--9865500-inline.html",
+      "descriptionText": "Sie begleiten Qualifizierungsprojekte in der Sterilherstellung und stimmen sich mit den Behörden ab."
+    },
+    {
+      "postingId": "9865501",
+      "title": null,
+      "employer": "Epsilon Consulting GmbH",
+      "workLocation": "München",
+      "publishedAtText": "vor 13 Tagen",
+      "sourceUrl": null,
+      "descriptionText": "Beratungsprojekte im Umfeld der pharmazeutischen Industrie, von der Analyse bis zur Umsetzung."
+    },
+    {
+      "postingId": null,
+      "title": "Projektmanagerin Medizintechnik (m/w/d)",
+      "employer": "Zeta Medical Devices GmbH",
+      "workLocation": "Oberschleißheim",
+      "publishedAtText": "vor 2 Wochen",
+      "sourceUrl": null,
+      "descriptionText": "Steuerung von Entwicklungsprojekten nach MDR, inklusive Risikomanagement und Dokumentation."
+    },
+    {
+      "postingId": null,
+      "title": "Projektmanagerin Regulatory Affairs (m/w/d)",
+      "employer": "Eta Pharma AG",
+      "workLocation": "München",
+      "publishedAtText": "vor 2 Wochen",
+      "sourceUrl": "https://www.stepstone.de/stellenangebote--Projektmanagerin-Regulatory-Affairs-Muenchen-Eta-Pharma-AG--inline.html",
+      "descriptionText": "Sie verantworten Zulassungsprojekte für die EU und koordinieren die Einreichungen."
+    },
+    {
+      "postingId": "9864777",
+      "title": "Project Lead Biologics (m/w/d)",
+      "employer": "Theta Biologics GmbH",
+      "workLocation": "Penzberg",
+      "publishedAtText": "2026-10-11",
+      "sourceUrl": "https://www.stepstone.de/stellenangebote--Project-Lead-Biologics-Penzberg-Theta-Biologics-GmbH--9864777-inline.html",
+      "descriptionText": "Leitung von Projekten der biopharmazeutischen Prozessentwicklung am Standort Penzberg."
+    }
+  ]
+}

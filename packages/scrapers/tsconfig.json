@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "_comment": "Type-check configuration: covers the sources, the tests and the Vitest config, and emits nothing. The build uses tsconfig.build.json, which narrows the inputs to src and turns emit back on.",
+  "extends": "@job-scraper/typescript-config/library.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": ["src", "__tests__", "vitest.config.ts"]
+}

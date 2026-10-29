@@ -1,0 +1,63 @@
+/*
+ * "Suchlauf starten" with the running status display behind it (2.7, 12.1, 12.5).
+ *
+ * Imported by `src/components/RunControls/index.tsx`, so the stylesheet arrives with the component
+ * wherever it is rendered — the landing page and the empty state of 10.12 — instead of having to be
+ * remembered in the shell. "Suchlauf abbrechen" carries its own stylesheet next to its own
+ * component (`../CancelRunControl/cancel-run-control.css`), because 12.6 mounts that control in the
+ * Log_View, where this file is not loaded.
+ *
+ * Vitest runs with CSS processing off, so the component tests see none of this: the contrast checks
+ * belong to the axe run of task 21.4 (`apps/web/e2e/accessibility.spec.ts`) and the focus indicator
+ * to the measurement of task 21.5 (`apps/web/e2e/focus-and-keyboard.spec.ts`), which axe cannot
+ * decide because it reads no element in its focused state.
+ *
+ * Nothing below carries state by colour alone (2.4). Every state the control has is a sentence in
+ * the markup: "Suchlauf läuft", the progress line, the runtime, the hint, the error notice. The one
+ * rule that does add colour is the busy state, and it repeats what the text already says.
+ */
+
+.run-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.run-controls__status,
+.run-controls__elapsed,
+.run-controls__hint {
+  margin: 0;
+}
+
+.run-controls__status-label {
+  font-weight: 600;
+}
+
+/*
+ * The runtime. Tabular figures keep the line from shifting sideways every second as the digits
+ * change width, which is the one thing a display that updates once a second must not do.
+ */
+.run-controls__elapsed {
+  font-variant-numeric: tabular-nums;
+}
+
+.run-controls__hint {
+  font-size: 0.875rem;
+}
+
+.run-controls__log-link {
+  color: var(--colour-accent);
+}
+
+/*
+ * The control is marked `aria-disabled` rather than `disabled` so it keeps the focus the user put
+ * on it (2.3), which means `.control:disabled` never matches it and the busy state needs a selector
+ * of its own. `cursor: progress` says the same thing the live region says.
+ */
+.run-controls__start[aria-disabled='true'] {
+  border-color: var(--colour-border);
+  background-color: var(--colour-page);
+  color: var(--colour-border);
+  cursor: progress;
+}

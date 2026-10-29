@@ -1,0 +1,22 @@
+{
+  "platform": "INDEED",
+  "case": "captcha",
+  "capturedAt": "2026-10-29T13:45:35.276Z",
+  "pageNumber": 1,
+  "requestUrl": "https://de.indeed.com/jobs?q=%22Projektmanagerin%22+OR+%22Projektmanager%22+OR+%22Project+Manager%22+OR+%22Projektleiterin%22+OR+%22Projektleiter%22+OR+%22Project+Lead%22+OR+%22Teilprojektleiterin%22&l=M%C3%BCnchen&fromage=30&jt=permanent",
+  "finalUrl": "https://de.indeed.com/jobs?q=%22Projektmanagerin%22+OR+%22Projektmanager%22+OR+%22Project+Manager%22+OR+%22Projektleiterin%22+OR+%22Projektleiter%22+OR+%22Project+Lead%22+OR+%22Teilprojektleiterin%22&l=M%C3%BCnchen&fromage=30&jt=permanent",
+  "httpStatus": 403,
+  "userAgent": "JobTool/0.1 (private use; contact: mail@markus-heer.com)",
+  "bytes": {
+    "raw": 38944,
+    "sanitized": 17742
+  },
+  "sanitization": {
+    "scriptsRemoved": 5,
+    "stylesRemoved": 1,
+    "trackingPixelsRemoved": 0,
+    "strippedParameters": [
+      "isid"
+    ]
+  }
+}

@@ -1,0 +1,33 @@
+# How many Platform a Scrape_Run asks, for the progress display of 2.7.
+#
+# The status display states progress as "{n} von {m} Plattformen abgefragt"
+# (`de.log.running.platformProgress`), and `m` is the number of *activated* Platform — not the four
+# the `Platform` enum lists. A Platform deactivated in the source code (4.6) is never requested, so
+# counting the enum would promise a retrieval that never happens and leave the display stuck one
+# step short of its own total for the whole run.
+#
+# `searchCriteria` is the only published answer to that question. Two fields of it are enough here:
+# `platform` identifies the entry, `activated` is the predicate being counted. Everything else that
+# query offers — the resolved Criterion_Field, the Platform_Status, the missing mandatory fields —
+# belongs to the read-only criteria view of 4.11 and is selected there.
+#
+# Two notes on the choice:
+#
+# - **It is configuration, so it is not polled.** The activation flags are source-code constants
+#   that take effect at a restart of the API_Service (4.14, 9.9), which is also a reload of the
+#   Web_App. One cache-first read per session is therefore current by construction, and the running
+#   numbers come from `ActiveScrapeRun`, which *is* polled.
+# - **It shares the `searchCriteria` cache field with the criteria view of task 19.1.** Both select
+#   a different subset of it, so whichever wrote last decides what is stored and the other reader
+#   may find its fields missing and fetch again. That costs one extra request on a page change and
+#   nothing else: neither reader branches on data it did not select, and both are read-only.
+#
+# A failed answer is not an error state anywhere: without a total the display says
+# `de.log.running.waiting` instead of a progress line, which understates rather than inventing a
+# denominator.
+query ActivatedPlatforms {
+  searchCriteria {
+    platform
+    activated
+  }
+}

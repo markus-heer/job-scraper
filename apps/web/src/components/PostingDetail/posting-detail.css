@@ -1,0 +1,49 @@
+/*
+ * The detail view of Requirements 10.8 and 10.15.
+ *
+ * Imported by `PostingDetail/index.tsx` rather than by the shell, like `posting-list.css`: whoever
+ * renders the component gets its appearance. It reads the spacing and colour variables the shell
+ * declares on `:root`, which holds because this view only ever renders inside that shell.
+ *
+ * Nothing here carries state by colour (2.4): the missing-description case is the German sentence
+ * of 10.15, the failure cases use the `.error-notice` block of the shell, and the source link is a
+ * `.control` with its border and its caption. Vitest runs with CSS processing off, so a component
+ * test loads this file as a no-op; the contrast of every pair used here is the shell's.
+ */
+
+.posting-detail__back {
+  margin: 0 0 var(--space-3);
+}
+
+.posting-detail__posting h1 {
+  margin: 0 0 var(--space-3);
+}
+
+.posting-detail__description-heading {
+  margin: 0 0 var(--space-2);
+  font-size: 1.125rem;
+}
+
+/*
+ * The description text as the Platform showed it (10.8).
+ *
+ * `pre-wrap` keeps the blank lines and the indentation of the stored text — they are the only
+ * structure it has, and collapsing them would run a bullet list into one paragraph. `max-width` in
+ * `ch` caps the measure at a readable line length regardless of the browser font size, which is the
+ * part of 2.3 that `rem` would not give here.
+ */
+.posting-detail__description {
+  margin: 0 0 var(--space-4);
+  max-width: 80ch;
+  white-space: pre-wrap;
+}
+
+.posting-detail__missing {
+  margin: 0 0 var(--space-4);
+  max-width: 80ch;
+}
+
+.posting-detail__source,
+.posting-detail__loading {
+  margin: 0;
+}

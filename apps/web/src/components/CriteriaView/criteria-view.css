@@ -1,0 +1,76 @@
+/*
+ * The read-only criteria view of Requirements 4.11 to 4.13.
+ *
+ * Imported by `CriteriaView/index.tsx` rather than by the shell, like every other view stylesheet:
+ * whoever renders the component gets its appearance. It reads the spacing and colour variables the
+ * shell declares on `:root`, which holds because this view only ever renders inside that shell.
+ *
+ * Nothing here carries state by colour (2.4): the Platform_Status, the two provenance labels of
+ * 4.12 and the missing mandatory fields are all text in their own labelled cell, and the surface
+ * tint on a block is decoration on top of them. Vitest runs with CSS processing off, so a component
+ * test loads this file as a no-op; the contrast of every pair used here is the shell's.
+ */
+
+.criteria__read-only,
+.criteria__change-hint,
+.criteria__loading {
+  margin: 0 0 var(--space-3);
+  max-width: 80ch;
+}
+
+.criteria-platform {
+  margin: 0 0 var(--space-4);
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius);
+  padding: var(--space-3);
+}
+
+.criteria-platform__heading {
+  margin: 0 0 var(--space-2);
+  font-size: 1.125rem;
+}
+
+/* The configuration state: label and value in two columns, as in the shell's settings list. */
+.criteria-platform__state {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-1) var(--space-3);
+  margin: 0 0 var(--space-2);
+}
+
+.criteria-platform__state dt {
+  margin: 0;
+  font-weight: 600;
+}
+
+.criteria-platform__state dd {
+  margin: 0;
+}
+
+.criteria-platform__hint,
+.criteria-platform__empty {
+  margin: 0 0 var(--space-2);
+  max-width: 80ch;
+}
+
+.criteria-platform__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.criteria-platform__table caption {
+  padding-bottom: var(--space-2);
+  text-align: left;
+}
+
+.criteria-platform__table th,
+.criteria-platform__table td {
+  border-bottom: 1px solid var(--colour-border);
+  padding: var(--space-2);
+  text-align: left;
+  vertical-align: top;
+}
+
+.criteria-platform__table thead th {
+  background-color: var(--colour-surface);
+}
