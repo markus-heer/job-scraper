@@ -70,12 +70,11 @@
  *    Platform_Adapter of this repository follows, it is what the fixture-mode runtime reads
  *    (`requestedPageNumber` in `apps/api/src/scraper/fixture-retrieval.runtime.ts`), and
  *    `apps/api/src/scraper/__tests__/fixture-retrieval.runtime.test.ts` asserts it for every
- *    registered adapter. Changing it is not free and it is not this task's to change: against the real
- *    Platform the consequence is that the retrieval reads the first block of results and then reads it
- *    again, which the page limit of 13.3 bounds at ten identical pages and which the upsert of 9.4
- *    turns into no duplicate rows. Reading the "Mehr Jobs anzeigen" control is the real fix and it
- *    needs a decision about the convention; `docs/adapters/glassdoor.md` (task 23.4) records the
- *    observation.
+ *    registered adapter. Against the real Platform it is ignored, which costs nothing: the retrieval
+ *    reaches the further blocks through the control instead, see
+ *    {@link GLASSDOOR_LOAD_MORE_SELECTOR}. **This is the resolution of what earlier revisions of
+ *    this comment recorded as an open observation** — the adapter now operates "Mehr Jobs anzeigen"
+ *    rather than re-requesting the same block, so the result list is read to its end (13.3, 13.12).
  */
 
 import type { EffectiveSearchProfile } from '@job-scraper/domain';
@@ -99,34 +98,31 @@ const RESULT_LIST_PATH = '/Job/jobs.htm';
 export const GLASSDOOR_RADIUS_STEPS_KM = [10, 25, 50, 100, 200] as const;
 
 /**
- * The Result_Page one Glassdoor retrieval reads: **one**, below the 10 of 13.3.
+ * The control Glassdoor paginates its result list through, and the reason this adapter operates it.
  *
- * Glassdoor ignores the `page` parameter. The capture of 2026-10-29 with `&page=2` landed on the same
- * canonical URL and 23 of its 30 job identifiers had already been served by page 1; the captured page
- * paginates through `<button data-test="load-more">` and loads the next block itself. So a retrieval
- * with the full budget reads the first block and then reads it again up to ten times, each repetition
- * paying the 2-second gap of 13.2, and ends in `PAGE_LIMIT_REACHED` because the `load-more` control
- * keeps claiming a further page.
+ * Glassdoor **ignores the `page` parameter**. The capture of 2026-10-29 with `&page=2` landed on the
+ * same canonical URL and 23 of its 30 job identifiers had already been served by page 1. The stored
+ * page instead carries `<button data-test="load-more">` labelled "Mehr Jobs anzeigen", with no
+ * `href` and no URL of the next block anywhere in the markup: Glassdoor's own client-side code makes
+ * that request. So the next block is reachable by operating the control and in no other way.
  *
- * Correctness never depended on this — the upsert of 9.4 is keyed on `(platform, postingId)`, so a
- * re-read block updates rows rather than inserting duplicates. What it cost was up to nine wasted page
- * requests against a third party per Scrape_Run, which Requirement 14 asks the Job_Tool not to make.
+ * Until this constant existed the adapter capped itself at one Result_Page (`GLASSDOOR_RESULT_PAGE_LIMIT`)
+ * and reported `PAGE_LIMIT_REACHED` as the ordinary end of a *successful* retrieval. That was the
+ * honest mitigation of a defect, not a fix: it read exactly the one block the Platform serves for a
+ * URL, and the remaining Job_Posting of the result list were simply never retrieved. 13.3 now asks
+ * for the result list to be read to its end, so the control is operated — through
+ * {@link AdapterPage.loadMore}, one step per block, each paced by the PlatformQueue as a page
+ * request (13.12).
  *
- * The cap is the cheap mitigation and the honest one: it reads exactly the block the Platform actually
- * serves. The real fix is reading the "Mehr Jobs anzeigen" control, which needs a decision about the
- * repository-wide `page` convention that the fixture-mode runtime depends on
- * (`requestedPageNumber` in `apps/api/src/scraper/fixture-retrieval.runtime.ts`), so the `page`
- * parameter stays exactly as it is and nothing here implements `load-more`.
+ * The `page` parameter stays in the URL regardless. It is the convention every Platform_Adapter of
+ * this repository follows, it is what the fixture-mode runtime reads (`requestedPageNumber` in
+ * `apps/api/src/scraper/fixture-retrieval.runtime.ts`), and it is how the fixture page models a
+ * pagination step. Against the real Platform it is ignored, which costs nothing now that the
+ * retrieval no longer paginates through it.
  *
- * The same shape as `INDEED_RESULT_PAGE_LIMIT`, and for a related reason: a Platform that leaves the
- * Job_Tool no usable way to address a second Result_Page gets a named cap with its reason beside it,
- * never a number inside the loop. `PAGE_LIMIT_REACHED` is consequently the ordinary end of a
- * *successful* Glassdoor retrieval, which makes its result a Partial_Result (7.7) — the result list
- * was in fact not read to its end.
- *
- * Requirements: 13.3, 14.1, 14.4.
+ * Requirements: 13.3, 13.12, 14.1, 14.4.
  */
-export const GLASSDOOR_RESULT_PAGE_LIMIT = 1;
+export const GLASSDOOR_LOAD_MORE_SELECTOR = 'button[data-test="load-more"]';
 
 /**
  * The query parameter names, in the order they are appended, so one profile yields one URL.

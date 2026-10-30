@@ -146,6 +146,8 @@ const emptyPage = (source: OpenedPageSource): AdapterPage => ({
     return Promise.resolve({ url, status: 200, headers: {} });
   },
   html: () => Promise.resolve('<html></html>'),
+  // An empty Result_Page offers no further block, which is the honest answer of 13.12.
+  loadMore: () => Promise.resolve(false),
   close: () => Promise.resolve(),
 });
 

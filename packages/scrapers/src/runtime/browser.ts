@@ -80,6 +80,22 @@ const ALL_URLS_PATTERN = '**/*';
  */
 const PAGE_WAIT_UNTIL = 'domcontentloaded';
 
+/**
+ * How often a pagination step re-reads the document while waiting for it to grow (13.12).
+ *
+ * 250 ms is short enough that a fast block is noticed almost immediately and long enough that the
+ * polling is not the cost. It never paces a retrieval: the 2-second gap of 13.2 is an order of
+ * magnitude larger and is applied by the PlatformQueue around the whole step.
+ */
+const PAGINATION_POLL_INTERVAL_MS = 250;
+
+/** Waits `ms` milliseconds. Used only by the pagination growth poll. */
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
 /** The runtime was used after the Scrape_Run browser had been closed or cancelled. */
 export class ScrapeRunBrowserClosedError extends Error {
   constructor(options?: ErrorOptions) {
@@ -478,6 +494,12 @@ class QueuedAdapterPage implements AdapterPage {
     return this.#page.content();
   }
 
+  async loadMore(selector: string): Promise<boolean> {
+    this.#throwIfClosed();
+
+    return this.#queue.request(() => this.#operatePagination(selector), this.#signal);
+  }
+
   async close(): Promise<void> {
     if (this.#closed) {
       return;
@@ -486,6 +508,74 @@ class QueuedAdapterPage implements AdapterPage {
     this.#closed = true;
     this.#onClosed(this);
     await ignoreFailure(() => this.#page.close());
+  }
+
+  /**
+   * One pagination step: operate the control and wait for the document to grow (13.12).
+   *
+   * Growth of the serialised document is the observable rather than the control's own state, and
+   * that is deliberate. A `load-more` button reports nothing reliable about whether its request
+   * succeeded — Glassdoor's carries `data-loading` and `aria-live` and stays in the DOM either way —
+   * so trusting it would let a retrieval loop on a control that answers with nothing. A document
+   * that did not grow is the end of the result list, which is `false` and not a failure.
+   *
+   * An absent or disabled control is also `false`, checked before the click so a result list that
+   * ended between the reading and this call is not a timeout.
+   */
+  async #operatePagination(selector: string): Promise<boolean> {
+    this.#throwIfClosed();
+    this.#signal.throwIfAborted();
+
+    const control = this.#page.locator(selector);
+
+    try {
+      if ((await control.count()) === 0) {
+        return false;
+      }
+
+      if (!(await control.isEnabled({ timeout: this.#pageTimeoutMs }))) {
+        return false;
+      }
+
+      const before = (await this.#page.content()).length;
+
+      await control.click({ timeout: this.#pageTimeoutMs });
+
+      return await this.#waitForGrowth(before);
+    } catch (error) {
+      this.#signal.throwIfAborted();
+
+      throw new RetryableRequestError(
+        `The pagination control ${selector} did not yield a further block within ${String(this.#pageTimeoutMs)} ms.`,
+        { cause: error },
+      );
+    }
+  }
+
+  /**
+   * Polls the serialised document until it is longer than `before`, or the page limit of 6.2 expires.
+   *
+   * Polled rather than awaited through a Playwright wait helper, so the port stays at the three
+   * locator members of 13.12 and so the runtime double in the tests needs no scripting engine. The
+   * interval is short relative to the 2-second gap of 13.2, so it never becomes the thing that paces
+   * a retrieval.
+   */
+  async #waitForGrowth(before: number): Promise<boolean> {
+    const deadline = Date.now() + this.#pageTimeoutMs;
+
+    for (;;) {
+      this.#signal.throwIfAborted();
+
+      if ((await this.#page.content()).length > before) {
+        return true;
+      }
+
+      if (Date.now() >= deadline) {
+        return false;
+      }
+
+      await delay(PAGINATION_POLL_INTERVAL_MS);
+    }
   }
 
   /**

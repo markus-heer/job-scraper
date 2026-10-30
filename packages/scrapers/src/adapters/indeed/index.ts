@@ -96,8 +96,8 @@ import {
   type AdapterPageResponse,
   type AdapterResult,
   buildAdapterResult,
+  effectivePageBudget,
   type RawJobPosting,
-  RESULT_PAGE_BUDGET,
 } from '../../adapter/types.js';
 import type { PlatformAdapterFor } from '../../registry.js';
 import {
@@ -112,31 +112,6 @@ import { INDEED_RESULT_PAGE_LIMIT, indeedResultListUrl } from './result-list-url
 
 /** The Platform this adapter serves. Named once, so no string literal is repeated below. */
 const PLATFORM = 'INDEED';
-
-/**
- * The Result_Page the retrieval is permitted to read.
- *
- * `context.pageBudget` is the production value of 13.3 and is what the tests shrink to make a page limit
- * observable without ten fixtures. It is capped at {@link RESULT_PAGE_BUDGET}, so the upper bound of
- * 13.3 holds even if a caller passes a larger budget, and floored at 0 so a nonsensical budget reads no
- * page rather than looping.
- *
- * The third bound is this Platform's own and is the tighter one:
- * {@link INDEED_RESULT_PAGE_LIMIT} is 1, because `start` is Indeed's only pagination parameter and its
- * robots.txt forbids it (`Disallow: /*&start=`), so the second Result_Page has no address the Job_Tool
- * may request (14.2). Capping here rather than paginating into a parameter Indeed ignores is what keeps
- * the retrieval from asking ten times for the same page; `./result-list-url.ts` carries the full
- * reasoning, and the end of such a retrieval is the `PAGE_LIMIT_REACHED` of 13.3 and 7.7.
- */
-function effectivePageBudget(pageBudget: number): number {
-  const upperBound = Math.min(RESULT_PAGE_BUDGET, INDEED_RESULT_PAGE_LIMIT);
-
-  if (!Number.isFinite(pageBudget)) {
-    return upperBound;
-  }
-
-  return Math.min(Math.max(Math.trunc(pageBudget), 0), upperBound);
-}
 
 /** Where a page ended the retrieval: the error that carries the Platform_Status and the log code. */
 function endOfRetrievalError(
@@ -190,6 +165,12 @@ export class IndeedAdapter implements PlatformAdapterFor<typeof PLATFORM> {
   /** What Indeed can express in its result list query (4.2). */
   readonly capability: PlatformCapabilityMap[typeof PLATFORM] = PLATFORM_CAPABILITIES[PLATFORM];
 
+  /**
+   * One Result_Page, because `Disallow: /*&start=` forbids this Platform's only pagination
+   * parameter, so the second Result_Page has no address the Job_Tool may request (13.13, 14.2).
+   */
+  readonly pageLimit = INDEED_RESULT_PAGE_LIMIT;
+
   /** The result list entry point of one page (14.1, 14.7). See `./result-list-url.ts`. */
   readonly resultListUrl = indeedResultListUrl;
 
@@ -204,7 +185,7 @@ export class IndeedAdapter implements PlatformAdapterFor<typeof PLATFORM> {
    */
   async fetch(context: AdapterContext): Promise<AdapterResult> {
     const postings: RawJobPosting[] = [];
-    const budget = effectivePageBudget(context.pageBudget);
+    const budget = effectivePageBudget(context.pageBudget, this.pageLimit);
     let pagesFetched = 0;
 
     /** One {@link AdapterResult} from the state collected so far. */

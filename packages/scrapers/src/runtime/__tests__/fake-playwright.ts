@@ -17,6 +17,7 @@ import type {
   RuntimeContextOptions,
   RuntimeGotoOptions,
   RuntimeLaunchOptions,
+  RuntimeLocator,
   RuntimePage,
   RuntimeRequest,
   RuntimeResponse,
@@ -52,12 +53,39 @@ export interface FakeBrowserBehaviour {
    * @param attempt How many navigations have been requested so far, including this one.
    */
   readonly navigate?: (url: string, attempt: number) => FakeNavigationOutcome;
-  /** What `content()` returns. Defaults to a minimal document. */
+  /** What `content()` returns before any pagination step. Defaults to a minimal document. */
   readonly html?: string;
+  /** How the in-page pagination control of 13.12 behaves. Defaults to no control at all. */
+  readonly pagination?: FakePaginationBehaviour;
   /** Makes `page.close()` fail, which the teardown has to survive. */
   readonly failPageClose?: boolean;
   /** Makes `browser.close()` fail, which the teardown has to survive. */
   readonly failBrowserClose?: boolean;
+}
+
+/**
+ * How the scripted pagination control answers, so the `loadMore` paths of 13.12 are all reachable:
+ * an absent control, a disabled one, a click that fails, and a click that grows the document or
+ * does not.
+ */
+export interface FakePaginationBehaviour {
+  /** How many elements the selector matches. 0 is an absent control. Defaults to 1. */
+  readonly count?: number;
+  /** Whether the control is enabled. Defaults to `true`. */
+  readonly enabled?: boolean;
+  /**
+   * The document after the n-th click, 1-based. A click past the end of this list leaves the
+   * document unchanged, which is the "claimed a block and delivered none" case.
+   */
+  readonly blocks?: readonly string[];
+  /** Makes the n-th click throw, 1-based, so the retryable path is reachable. */
+  readonly failClickAt?: number;
+}
+
+/** One operation of the pagination control, as the double observed it. */
+export interface PaginationClickRecord {
+  readonly selector: string;
+  readonly timeout: number | undefined;
 }
 
 /** Everything the double observed, shared by the browser, its contexts and its pages. */
@@ -72,6 +100,12 @@ export class FakeBrowserRecorder {
   readonly routeHandlers: ((route: RuntimeRoute) => Promise<void> | void)[] = [];
 
   readonly navigations: NavigationRecord[] = [];
+
+  /** Every pagination control operation of 13.12, in order. */
+  readonly paginationClicks: PaginationClickRecord[] = [];
+
+  /** The selectors `locator()` was called with, so the narrowness of the port is assertable. */
+  readonly locatorSelectors: string[] = [];
 
   /** `close` calls in the order they happened, so the teardown order is assertable. */
   readonly closeOrder: ('page' | 'context' | 'browser')[] = [];
@@ -190,6 +224,12 @@ class FakePage implements RuntimePage {
 
   #currentUrl = 'about:blank';
 
+  /** Clicks performed on the pagination control, whether or not they revealed a block. */
+  #clickCount = 0;
+
+  /** Clicks that were answered with a further document; see {@link FakePage.content}. */
+  #revealedBlocks = 0;
+
   constructor(
     behaviour: FakeBrowserBehaviour,
     recorder: FakeBrowserRecorder,
@@ -231,7 +271,39 @@ class FakePage implements RuntimePage {
   }
 
   async content(): Promise<string> {
-    return this.#behaviour.html ?? DEFAULT_HTML;
+    const blocks = this.#behaviour.pagination?.blocks ?? [];
+    // `#revealedBlocks` counts the clicks that were *answered* with a document, so the body served
+    // after n steps is blocks[n - 1]; before the first step it is the plain `html`.
+    const revealed = blocks[this.#revealedBlocks - 1];
+
+    return revealed ?? this.#behaviour.html ?? DEFAULT_HTML;
+  }
+
+  locator(selector: string): RuntimeLocator {
+    this.#recorder.locatorSelectors.push(selector);
+
+    const pagination = this.#behaviour.pagination;
+
+    return {
+      count: async () => pagination?.count ?? (pagination === undefined ? 0 : 1),
+      isEnabled: async () => pagination?.enabled ?? true,
+      click: async (options) => {
+        this.#clickCount += 1;
+        this.#recorder.paginationClicks.push({ selector, timeout: options?.timeout });
+
+        if (pagination?.failClickAt === this.#clickCount) {
+          throw new Error(
+            `The fake pagination control failed on click ${String(this.#clickCount)}.`,
+          );
+        }
+
+        // A click is only *answered* where the script has a further document for it. Beyond that the
+        // document stays as it is, which is what `loadMore` reports as the end of the result list.
+        if (this.#clickCount <= (pagination?.blocks?.length ?? 0)) {
+          this.#revealedBlocks = this.#clickCount;
+        }
+      },
+    };
   }
 
   url(): string {

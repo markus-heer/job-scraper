@@ -61,8 +61,8 @@ import {
   type AdapterPageResponse,
   type AdapterResult,
   buildAdapterResult,
+  effectivePageBudget,
   type RawJobPosting,
-  RESULT_PAGE_BUDGET,
 } from '../../adapter/types.js';
 import type { PlatformAdapterFor } from '../../registry.js';
 import {
@@ -77,22 +77,6 @@ import { jobvectorResultListUrl } from './result-list-url.js';
 
 /** The Platform this adapter serves. Named once, so no string literal is repeated below. */
 const PLATFORM = 'JOBVECTOR';
-
-/**
- * The Result_Page the retrieval is permitted to read.
- *
- * `context.pageBudget` is the production value of 13.3 and is what the tests shrink to make a page
- * limit observable without ten fixtures. It is additionally capped at {@link RESULT_PAGE_BUDGET} here,
- * so the upper bound of 13.3 holds even if a caller passes a larger budget, and floored at 0 so a
- * nonsensical budget reads no page rather than looping.
- */
-function effectivePageBudget(pageBudget: number): number {
-  if (!Number.isFinite(pageBudget)) {
-    return RESULT_PAGE_BUDGET;
-  }
-
-  return Math.min(Math.max(Math.trunc(pageBudget), 0), RESULT_PAGE_BUDGET);
-}
 
 /** Where a page ended the retrieval: the error that carries the Platform_Status and the log code. */
 function endOfRetrievalError(

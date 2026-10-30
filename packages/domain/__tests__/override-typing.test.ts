@@ -59,7 +59,10 @@ const capabilityWithUnsupportedMandatoryField = definePlatformCapability({
 
 const overrideWithSupportedField = {
   GLASSDOOR: { searchRadiusKm: 25, searchLocation: 'Augsburg' },
-  STEPSTONE: { employmentType: 'ANY' },
+  // Indeed rather than Stepstone for the `employmentType` case: Stepstone's robots.txt permits one
+  // query parameter, so that field left its `supportedFields` and an override setting it is now the
+  // compile error the negative cases above cover.
+  INDEED: { employmentType: 'ANY' },
 } satisfies PlatformOverrideMap;
 
 const capabilityWithSupportedMandatoryFields = definePlatformCapability({
@@ -78,15 +81,19 @@ export type GlassdoorOverrideKeysAreTheSupportedFields = Expect<
   >
 >;
 
+/** Three fields: this Platform's robots.txt permits exactly one query parameter (14.2). */
 export type StepstoneOverrideKeysAreTheSupportedFields = Expect<
   Equals<
     keyof PlatformOverrideFor<PlatformCapabilityMap['STEPSTONE']>,
-    | 'jobTitle'
-    | 'titleSynonyms'
-    | 'searchLocation'
-    | 'searchRadiusKm'
-    | 'employmentType'
-    | 'publicationPeriodDays'
+    'jobTitle' | 'titleSynonyms' | 'searchLocation'
+  >
+>;
+
+/** The widest of the four declarations, which keeps the mapped type honest for a long tuple too. */
+export type IndeedOverrideKeysAreTheSupportedFields = Expect<
+  Equals<
+    keyof PlatformOverrideFor<PlatformCapabilityMap['INDEED']>,
+    'jobTitle' | 'titleSynonyms' | 'searchLocation' | 'employmentType' | 'publicationPeriodDays'
   >
 >;
 

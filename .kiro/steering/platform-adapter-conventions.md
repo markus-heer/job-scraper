@@ -35,6 +35,7 @@ a change to the source of the Scraper_Service. The interface that makes that hol
 | Member                              | Meaning                                                                              |
 | ----------------------------------- | ------------------------------------------------------------------------------------ |
 | `capability`                        | What this Platform can express in its result list query (4.2); the registry key check |
+| `pageLimit`                         | This Platform's own Result_Page bound where it is tighter than the Page_Safety_Limit (13.13); omitted where it has none |
 | `resultListUrl(profile, pageNumber)`| The Result_Page entry point, used for the robots.txt evaluation of 14.1 and documented per 14.7 |
 | `fetch(context)`                    | Retrieves the publicly accessible result list and returns one `AdapterResult`          |
 
@@ -48,8 +49,8 @@ cancellation `signal` of 12.7 and 13.6.
 
 Four responsibilities are deliberately **not** the adapter's:
 
-- **Playwright.** An adapter sees `AdapterPage` — `load(url)`, `html()`, `close()` — and never a
-  browser type. The Playwright runtime (`packages/scrapers/src/runtime/`) implements that port in
+- **Playwright.** An adapter sees `AdapterPage` — `load(url)`, `html()`, `loadMore(selector)`,
+  `close()` — and never a browser type. The Playwright runtime (`packages/scrapers/src/runtime/`) implements that port in
   production; the fixture page factory implements it over a frozen HTML file in the tests and in
   fixture mode. This is what makes a parser testable without a browser and without a network.
 - **Pacing, repetition and the per-page time limit.** Every `page.load` goes through the
@@ -162,10 +163,22 @@ Platform_Override for an unsupported Criterion_Field a compile error (4.5).
 | `GLASSDOOR` | `jobTitle`, `titleSynonyms`, `searchLocation`, `searchRadiusKm`                                     | `jobTitle`, `searchLocation`|
 | `JOBVECTOR` | `jobTitle`, `titleSynonyms`, `industry`, `searchLocation`, `searchRadiusKm`                         | `jobTitle`                  |
 | `INDEED`    | `jobTitle`, `titleSynonyms`, `searchLocation`, `employmentType`, `publicationPeriodDays`            | `jobTitle`, `searchLocation`|
-| `STEPSTONE` | `jobTitle`, `titleSynonyms`, `searchLocation`, `searchRadiusKm`, `employmentType`, `publicationPeriodDays` | `jobTitle`, `searchLocation`|
+| `STEPSTONE` | `jobTitle`, `titleSynonyms`, `searchLocation`                                                        | `jobTitle`, `searchLocation`|
 
-`INDEED` is the one entry whose shape is decided by a robots.txt rather than by what the Platform's
-search form offers. Indeed does have a radius selector, but the `User-agent: *` group of
+`INDEED` and `STEPSTONE` are the two entries whose shape is decided by a robots.txt rather than by
+what the Platform's search form offers.
+
+`STEPSTONE` is the narrower of the two and the more surprising: its search form offers a radius, a
+contract type and a posting-age filter, and the declaration carries none of them. The
+`User-agent: *` group of `https://www.stepstone.de/robots.txt` permits the result list path with
+**exactly one** query parameter — `Allow: /jobs/*?q=*` stands against `Disallow: /jobs/*?*` and
+`Disallow: /jobs/*?q*&*` — so a URL stating a second parameter is one the Job_Tool may not request
+(14.2), and rule 2 below then forbids declaring the field. Until that was measured the builder sent
+four parameters and **every** Stepstone retrieval ended with `EXCLUDED_BY_ROBOTS_TXT` having fetched
+nothing. The same `Disallow` lines are why that adapter reads exactly one Result_Page
+(`STEPSTONE_RESULT_PAGE_LIMIT`). The decision table is in
+`packages/scrapers/src/adapters/stepstone/result-list-url.ts` and a property test asserts every
+emitted URL against the stored `__fixtures__/robots.txt`. Indeed does have a radius selector, but the `User-agent: *` group of
 `https://de.indeed.com/robots.txt` carries `Disallow: /*radius=`, so a URL stating a radius is one the
 Job_Tool may not request (14.2) — and rule 2 below then forbids declaring the field. The sibling line
 `Disallow: /*&start=` forbids Indeed's only pagination parameter, which is why that adapter reads
@@ -240,40 +253,93 @@ Two further time limits belong here: `RESULT_PAGE_TIMEOUT_MS = 30_000` per Resul
 in `packages/scrapers/src/adapter/types.ts`, and `ROBOTS_FETCH_TIMEOUT_MS = 10_000` for the
 robots.txt retrieval (14.3) in `packages/scrapers/src/robots/robots.ts`.
 
-### The page limit: 10 Result_Page per Platform and Scrape_Run (13.3)
+### Reading the result list to its end, and the Page_Safety_Limit (13.3, 13.10 – 13.14)
 
-`RESULT_PAGE_BUDGET = 10` in `packages/scrapers/src/adapter/types.ts`. It reaches an adapter as
-`context.pageBudget`, which a test shrinks so the limit is observable without ten fixtures.
+**The target is the whole result list, not a page count.** 13.3 asks an adapter to keep retrieving
+Result_Page until the Platform offers no further one, and to report `COMPLETED` for a list read to
+its end. Everything below is about the three ways that can fail to be reachable.
 
-An adapter caps the handed budget at `RESULT_PAGE_BUDGET` and floors it at 0, so the upper bound of
-13.3 holds even if a caller passes a larger value and a nonsensical budget reads no page rather than
-looping. On reaching the limit while the Platform still offers a further Result_Page, the adapter
-logs the page-limit line and reports Platform_Status `PAGE_LIMIT_REACHED`, which makes the result a
-Partial_Result (7.7) because the result list was not read to its end. A result list that ends before
-the limit reports `COMPLETED`.
+`RESULT_PAGE_BUDGET = 100` in `packages/scrapers/src/adapter/types.ts` is the Page_Safety_Limit of
+13.10 — a safety net, not the intended depth. It bounds a Platform that keeps claiming a further
+Result_Page without ever delivering a last one, which is a real failure mode of an infinite-scroll
+list and of a `load-more` control that never disables itself. It reaches an adapter as
+`context.pageBudget`, which a test shrinks so the limit is observable without a hundred fixtures.
+The binding constraint in practice is not this number but the 30-minute retrieval window of 13.6:
+page requests of one Platform are serial with the 2-second gap of 13.2, so 100 pages is roughly
+seven minutes per Platform.
 
-An adapter may cap *lower* where the Platform leaves it no usable way to address a further
-Result_Page. Two of the four do, and both caps are 1:
+`effectivePageBudget(pageBudget, platformLimit)` in the same file is the one implementation of the
+rule, shared by all four adapters rather than copied into each. Narrowest of three bounds wins, a
+test may shrink below all of them, nothing can raise above them, a non-finite budget falls back to
+the bound and a negative one floors at 0.
 
+On reaching the limit while the Platform still offers a further Result_Page, the adapter logs the
+page-limit line and reports Platform_Status `PAGE_LIMIT_REACHED`, which makes the result a
+Partial_Result (7.7) and is the honest statement that the Job_Tool stopped before the Platform did
+(13.11).
+
+#### A Platform whose pagination has no permitted address (13.13)
+
+An adapter declares its own tighter bound as `pageLimit` **on the `PlatformAdapter` interface**, not
+privately. That placement is load-bearing: `intendedPathsOf` in
+`apps/api/src/scraper/scraper.service.ts` resolves every intended path *before* the first request
+for the robots.txt evaluation of 14.1, and 14.2 excludes a Platform if **any** of them is forbidden.
+Enumerating paths the adapter never intends to request would exclude the Platform in full and tell
+the user "durch robots.txt ausgeschlossen" for a decision the Job_Tool had made itself. Two of the
+four declare one, both `1`:
+
+- `STEPSTONE_RESULT_PAGE_LIMIT` in `packages/scrapers/src/adapters/stepstone/result-list-url.ts`,
+  because `www.stepstone.de/robots.txt` permits the result list path with **exactly one** query
+  parameter — `Allow: /jobs/*?q=*` against `Disallow: /jobs/*?*` and `Disallow: /jobs/*?q*&*` — so
+  no pagination shape of that Platform has a permitted address. Measured 2026-10-29; the stored
+  `__fixtures__/robots.txt` and its sidecar carry the capture and a property test asserts every
+  emitted URL against it.
 - `INDEED_RESULT_PAGE_LIMIT` in `packages/scrapers/src/adapters/indeed/result-list-url.ts`, because
-  `Disallow: /*&start=` in the robots.txt of that Platform forbids its only pagination parameter, so
-  the second Result_Page has no address the Job_Tool may request (14.2).
-- `GLASSDOOR_RESULT_PAGE_LIMIT` in `packages/scrapers/src/adapters/glassdoor/result-list-url.ts`,
-  because Glassdoor *ignores* the `page` parameter and paginates through a
-  `<button data-test="load-more">` instead. The capture of 2026-10-29 proved it: the request with
-  `&page=2` landed on the same canonical URL and 23 of its 30 job identifiers had already been
-  served. Without the cap, up to nine of the ten page requests of a Glassdoor retrieval re-read the
-  first block, each still paying the 2-second gap of 13.2.
+  `Disallow: /*&start=` forbids that Platform's only pagination parameter.
 
 For both, `PAGE_LIMIT_REACHED` is the ordinary end of a *successful* retrieval rather than the
-exception, and it is where the Partial_Result of 7.7 is observable for that Platform. Such a cap is
-a named constant with its reason beside it, never a number inside the loop, and `effectivePageBudget`
-of the adapter applies it as `min(RESULT_PAGE_BUDGET, <platform limit>)` — a test may shrink the
-budget below it, nothing can raise it.
+exception. Such a bound is a named constant with its reason beside it, never a number inside the
+loop, and it is passed to `effectivePageBudget` as the `platformLimit` argument **and** declared as
+`pageLimit` — both, or the service and the adapter disagree about what will be requested.
 
-The Glassdoor cap is a mitigation and not a fix: reading the "Mehr Jobs anzeigen" control is what
-would actually retrieve the second block, and that needs a decision about the repository-wide `page`
-convention below. `docs/adapters/glassdoor.md` records both sides.
+Where a Platform leaves several *permitted entry points* that together cover more of the result list
+than any one of them, 13.14 permits retrieving each within the Page_Safety_Limit. That is the open
+option for Stepstone — one path per title synonym — and it needs a capture to decide; see
+`docs/adapters/stepstone.md`.
+
+#### A Platform that paginates through a control (13.12)
+
+Glassdoor **ignores** the `page` parameter. The capture of 2026-10-29 proved it: the request with
+`&page=2` landed on the same canonical URL and 23 of its 30 job identifiers had already been served.
+It paginates through `<button data-test="load-more">` instead, which carries no `href` and no URL of
+the next block — Glassdoor's own client-side code makes that request. So the rest of the result list
+is reachable by operating the control and in no other way.
+
+`AdapterPage.loadMore(selector)` is that step. It is paced by the `PlatformQueue` exactly like a
+page request, so the gap of 13.2, the single in-flight slot of 13.9 and the attempt bound of 13.4
+all apply per step, and each step counts towards `pagesFetched` and the Page_Safety_Limit. The
+Glassdoor adapter calls it with `GLASSDOOR_LOAD_MORE_SELECTOR` and its iteration unit is a *block*
+rather than a URL.
+
+Three things to get right when writing such an adapter:
+
+1. **Replace the posting list from each reading, do not extend it.** The control appends to one
+   document, so every reading already carries every block revealed so far. Appending would duplicate
+   each earlier block once per step — harmless for the upsert of 9.4, which is keyed on
+   `(platform, postingId)`, but it makes `postings.length` and every count derived from it a fiction.
+2. **One page for the whole retrieval.** The further blocks exist only in *that* page's DOM; a second
+   page starts again at block 1.
+3. **A control that claims a further block and delivers none is the end of the list**, reported as
+   `COMPLETED` and not as a failure. `hasNextPage` reads a button the Platform leaves in the DOM, so
+   it outlives the last block it can serve. The runtime decides this by whether the serialised
+   document *grew*, never by the button's own state.
+
+**`loadMore` is the only interactive member of `AdapterPage`, and that is where 7.5 and 7.6 now
+live.** `packages/scrapers/src/runtime/playwright-port.ts` used to carry the guarantee by having no
+`click` at all; it now has a three-member `RuntimeLocator`, reachable from the runtime and never from
+an adapter. An adapter has no way to aim a click at a sign-in form, a consent dialog or a Captcha. A
+sign-in wall and a bot check are *ended* where they are detected (7.2, 7.6, 7.8), never clicked
+through, and the surface assertion in `runtime/__tests__/browser.test.ts` is what keeps that true.
 
 ### robots.txt and etiquette (14.1 – 14.5)
 

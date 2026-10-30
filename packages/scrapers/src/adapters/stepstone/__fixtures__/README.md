@@ -41,3 +41,24 @@ then re-read the expectation file in the diff, set its `provenance` to `CAPTURED
 
 The repository-wide `.prettierignore` excludes `**/__fixtures__/`. A captured document has to stay
 byte-identical to what the Platform served, so neither the HTML nor the JSON beside it is reformatted.
+
+## `robots.txt` (14.1, 14.2, 13.13)
+
+`robots.txt` is the body `https://www.stepstone.de/robots.txt` served on 2026-10-29 to the honest
+Job_Tool user agent, stored byte-identically, with `robots.txt.capture.json` recording the capture,
+the applying group, the absence of a `Crawl-delay` and the full decision table.
+
+**It decides a test, never a Scrape_Run.** A real run is gated by the live body that `RobotsCache`
+fetches once per Platform, so a rule change by Stepstone takes effect immediately regardless of this
+file. What this copy is for is the property test in `../__tests__/result-list-url.test.ts`, which
+asserts that *every* URL the builder can produce is one these rules permit — the regression guard for
+the defect where four query parameters made every Stepstone retrieval end in
+`EXCLUDED_BY_ROBOTS_TXT` having fetched nothing.
+
+**What it does not establish.** That the rules still say this. The stored copy going stale makes the
+test's oracle wrong, not the Job_Tool's behaviour; the `@live` smoke test of this Platform is what
+notices. Re-capture with the same command and review the diff.
+
+**No Result_Page of this Platform has been captured.** All eight `REQUIRED_FIXTURE_CASES` documents
+here are hand-authored, so what they establish is that the parser reads the markup *they* contain —
+not that Stepstone serves markup of that shape. `docs/adapters/stepstone.md` records that plainly.

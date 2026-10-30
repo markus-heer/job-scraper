@@ -10,6 +10,7 @@ import {
   type AdapterLogEvent,
   type AdapterRegistry,
   buildUserAgent,
+  effectivePageBudget,
   normalizePosting,
   parsePublicationDate,
   type PlatformAdapter,
@@ -219,10 +220,18 @@ const adapterLogEntry = (platform: Platform, event: AdapterLogEvent): RunLogEntr
 /**
  * The paths a Platform_Adapter intends to request, for the robots.txt evaluation of 14.1.
  *
- * Every Result_Page the page budget of 13.3 permits is resolved up front, because 14.1 asks for the
+ * Every Result_Page the adapter may actually request is resolved up front, because 14.1 asks for the
  * evaluation of *every* intended path before the first page request and because the adapters build
  * their URLs deterministically from the effective Search_Profile. It costs no extra request: the
  * robots.txt of a Platform is fetched once and every path is answered from that one body.
+ *
+ * **The bound is the adapter's own `pageLimit` where it declares one, not the Page_Safety_Limit.**
+ * That is requirement 13.13, and it is load-bearing rather than an optimisation. A Platform whose
+ * robots.txt forbids its pagination shape — Stepstone forbids every shape, Indeed forbids its only
+ * parameter — would otherwise be excluded *in full* by 14.2 on account of paths the adapter was
+ * never going to request, and the user would read "durch robots.txt ausgeschlossen" for a decision
+ * the Job_Tool had made itself. Enumerating only what the adapter will really ask for is what lets
+ * 13.3 and 14.2 both hold.
  *
  * @throws Whatever `resultListUrl` throws for a Search_Profile it cannot build a URL from; the
  *   caller classifies it like any other failure of that Platform (13.1).
@@ -232,9 +241,10 @@ const intendedPathsOf = (
   profile: EffectiveSearchProfile,
 ): { readonly origin: string; readonly paths: readonly string[] } => {
   const paths = new Set<string>();
+  const pageCount = effectivePageBudget(RESULT_PAGE_BUDGET, adapter.pageLimit);
   let origin: string | undefined = undefined;
 
-  for (let pageNumber = 1; pageNumber <= RESULT_PAGE_BUDGET; pageNumber += 1) {
+  for (let pageNumber = 1; pageNumber <= pageCount; pageNumber += 1) {
     const url = new URL(adapter.resultListUrl(profile, pageNumber));
 
     origin ??= url.origin;
@@ -242,7 +252,8 @@ const intendedPathsOf = (
   }
 
   if (origin === undefined) {
-    // Unreachable: RESULT_PAGE_BUDGET is a positive constant, so the loop runs at least once.
+    // Reachable only for an adapter declaring `pageLimit: 0`, which no registered adapter does and
+    // which would mean a Platform that may not be requested at all.
     throw new RangeError(
       `No Result_Page URL could be built for platform ${adapter.capability.platform}.`,
     );

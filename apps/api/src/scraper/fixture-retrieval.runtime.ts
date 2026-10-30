@@ -88,8 +88,11 @@ export const PAGE_QUERY_PARAM = 'page';
 /**
  * How many Result_Page get a route.
  *
- * The page limit of 13.3, so a Platform_Adapter that asked for every page it is allowed to ask for
- * still gets an answer rather than a 404, which it would have to report as a Platform failure.
+ * Deliberately **not** the Page_Safety_Limit of 13.10, which is 100: a fixture-mode run never walks
+ * that far, because `DEFAULT_FIXTURE_PAGE_CASES` serves a last page as page 2 and every adapter then
+ * reports `COMPLETED`. Ten routes leave room for a test that scripts a deeper walk, and anything
+ * past them falls to {@link FIXTURE_OVERFLOW_CASE} rather than to a 404 the adapter would have to
+ * report as a Platform failure.
  */
 export const FIXTURE_PAGE_ROUTE_COUNT = 10;
 

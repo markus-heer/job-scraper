@@ -40,17 +40,14 @@ import {
 import { readFixtureHtml } from '../../../fixtures/fixture-files.js';
 import { createFixturePageFactory } from '../../../fixtures/fixture-page.js';
 import { REQUIRED_FIXTURE_CASES } from '../../../fixtures/fixture-paths.js';
-import {
-  type FixtureRoute,
-  type FixtureRoutes,
-  FixtureServer,
-} from '../../../fixtures/fixture-server.js';
+import { type FixtureRoute, FixtureServer } from '../../../fixtures/fixture-server.js';
 import {
   MAX_REQUEST_ATTEMPTS,
   MIN_REQUEST_GAP_MS,
   PlatformQueue,
 } from '../../../scheduling/platform-queue.js';
 import { StepstoneAdapter } from '../index.js';
+import { STEPSTONE_RESULT_PAGE_LIMIT } from '../result-list-url.js';
 
 /** The effective Search_Profile of Stepstone as the Job_Tool ships it (3.1, 4.3). */
 const PROFILE: EffectiveSearchProfile = (() => {
@@ -117,16 +114,10 @@ function routeOf(pageNumber: number): string {
   return `${url.pathname}${url.search}`;
 }
 
-/** Serves one stored document per Result_Page, in the given order. */
-function pageRoutes(cases: readonly string[]): FixtureRoutes {
-  const routes: Record<string, FixtureRoute> = {};
-
-  cases.forEach((fixtureCase, index) => {
-    routes[routeOf(index + 1)] = documentRoute(fixtureCase);
-  });
-
-  return routes;
-}
+// No `pageRoutes` helper here, unlike the Jobvector and Glassdoor siblings: this Platform has exactly
+// one permitted Result_Page address, so `routeOf(n)` collapses onto `routeOf(1)` for every `n` and a
+// multi-page route map would silently overwrite its own entries. Every case below registers the one
+// route explicitly, which is what makes that visible rather than confusing.
 
 /** The context of one fixture-backed retrieval, with the Log_Stream collected in an array. */
 function contextFor(
@@ -203,10 +194,10 @@ describe.each(REQUIRED_FIXTURE_CASES)('a retrieval of the single Result_Page %s'
   });
 });
 
-describe('pagination over the two stored result list pages (6.10, 13.3)', () => {
-  it('reads page 2 and stops where no further Result_Page is offered', async () => {
+describe('the one permitted Result_Page (13.3, 13.13, 14.2)', () => {
+  it('reads the entry point once and asks for no second address', async () => {
     server = await FixtureServer.start({
-      routes: pageRoutes(['result-list-page-1', 'result-list-page-2']),
+      routes: { [routeOf(1)]: documentRoute('result-list-page-1') },
     });
 
     const factory = createFixturePageFactory({ origin: server.origin, timeoutMs: 2000 });
@@ -214,70 +205,78 @@ describe('pagination over the two stored result list pages (6.10, 13.3)', () => 
 
     const result = await adapter.fetch(context);
 
-    expect(result.platformStatus).toBe('COMPLETED');
-    expect(result.partialResult).toBe(false);
-    expect(result.pagesFetched).toBe(2);
-    expect(result.postings).toHaveLength(9);
-    expect(targetsOf(server)).toEqual([routeOf(1), routeOf(2)]);
-    expect(events.map((event) => event.code)).toEqual([
-      'platform.pageFetched',
-      'platform.pageFetched',
-      'platform.resultListComplete',
-    ]);
+    // The captured page offers a further Result_Page, and this Platform's robots.txt gives that
+    // page no permitted address: `Disallow: /jobs/*?*` forbids `?page=2` and `Disallow: /jobs/*?q*&*`
+    // forbids `?q=…&page=2`. So the retrieval ends at the limit of 13.13, which makes
+    // `PAGE_LIMIT_REACHED` the ordinary end of a *successful* Stepstone retrieval and the result a
+    // Partial_Result (7.7) — the postings read are kept.
+    expect(result.pagesFetched).toBe(STEPSTONE_RESULT_PAGE_LIMIT);
+    expect(server.requests).toHaveLength(1);
+    expect(result.platformStatus).toBe('PAGE_LIMIT_REACHED');
+    expect(result.partialResult).toBe(true);
+    expect(result.postings.length).toBeGreaterThan(0);
+    expect(events.at(-1)?.code).toBe('platform.pageLimit');
   });
 
-  it('asks for the second page with the page parameter and nothing else changed', async () => {
+  it('yields one and the same permitted URL for every page number', () => {
+    // There is no second address, so `routeOf` collapses: the builder answers the entry point for
+    // every page number. This is what makes the multi-page cases of the other three adapters
+    // inapplicable here rather than merely unused.
+    expect(routeOf(2)).toBe(routeOf(1));
+    expect(routeOf(RESULT_PAGE_BUDGET)).toBe(routeOf(1));
+  });
+
+  it('reads one Result_Page whatever budget it is handed', async () => {
     server = await FixtureServer.start({
-      routes: pageRoutes(['result-list-page-1', 'result-list-page-2']),
+      routes: { [routeOf(1)]: documentRoute('result-list-page-1') },
     });
 
     const factory = createFixturePageFactory({ origin: server.origin, timeoutMs: 2000 });
-
-    await adapter.fetch(contextFor(factory.openPage).context);
-
-    const second = new URL(server.requests[1]?.target ?? '', 'https://www.stepstone.de');
-    const first = new URL(server.requests[0]?.target ?? '', 'https://www.stepstone.de');
-
-    expect(second.pathname).toBe(first.pathname);
-    expect(second.searchParams.get('page')).toBe('2');
-    expect(first.searchParams.get('page')).toBeNull();
-    expect(second.searchParams.get('radius')).toBe(first.searchParams.get('radius'));
-  });
-
-  it('never reads more than ten Result_Page, whatever budget it is handed (13.3)', async () => {
-    const always = Array.from({ length: 12 }, () => 'result-list-page-1');
-
-    server = await FixtureServer.start({ routes: pageRoutes(always) });
-
-    const factory = createFixturePageFactory({ origin: server.origin, timeoutMs: 2000 });
-    const { context, events } = contextFor(factory.openPage, { pageBudget: 50 });
+    const { context } = contextFor(factory.openPage, { pageBudget: RESULT_PAGE_BUDGET * 10 });
 
     const result = await adapter.fetch(context);
 
-    expect(result.pagesFetched).toBe(RESULT_PAGE_BUDGET);
-    expect(server.requests).toHaveLength(RESULT_PAGE_BUDGET);
-    expect(result.platformStatus).toBe('PAGE_LIMIT_REACHED');
-    expect(result.partialResult).toBe(true);
-    expect(events.at(-1)?.code).toBe('platform.pageLimit');
+    // Neither the Page_Safety_Limit of 13.10 nor a larger budget raises this Platform's own bound.
+    expect(result.pagesFetched).toBe(STEPSTONE_RESULT_PAGE_LIMIT);
+    expect(server.requests).toHaveLength(1);
+  });
+
+  it('reports a complete result list where the one page offers no further one', async () => {
+    server = await FixtureServer.start({
+      routes: { [routeOf(1)]: documentRoute('result-list-page-2') },
+    });
+
+    const factory = createFixturePageFactory({ origin: server.origin, timeoutMs: 2000 });
+    const { context, events } = contextFor(factory.openPage);
+
+    const result = await adapter.fetch(context);
+
+    // `result-list-page-2` is the stored *last* page, so this is the `COMPLETED` path: the one
+    // permitted Result_Page was also the end of the result list.
+    expect(result.platformStatus).toBe('COMPLETED');
+    expect(result.partialResult).toBe(false);
+    expect(events.at(-1)?.code).toBe('platform.resultListComplete');
   });
 });
 
 describe('the gap between two page requests (13.2)', () => {
-  it('waits at least two seconds before every further Result_Page', async () => {
+  it('pays no gap where there is no further Result_Page, and the minimum between attempts', async () => {
     const { queue, waits } = pacedQueue();
 
     server = await FixtureServer.start({
-      routes: pageRoutes(['result-list-page-1', 'result-list-page-1', 'result-list-page-2']),
+      routes: { [routeOf(1)]: documentRoute('result-list-page-1') },
     });
 
     const factory = createFixturePageFactory({ origin: server.origin, timeoutMs: 2000, queue });
 
     const result = await adapter.fetch(contextFor(factory.openPage).context);
 
-    expect(result.pagesFetched).toBe(3);
+    expect(result.pagesFetched).toBe(STEPSTONE_RESULT_PAGE_LIMIT);
     expect(queue.minDelayMs).toBe(MIN_REQUEST_GAP_MS);
-    // One wait per further page, and none before the first request of the Scrape_Run.
-    expect(waits).toEqual([MIN_REQUEST_GAP_MS, MIN_REQUEST_GAP_MS]);
+    // The gap of 13.2 is paid *before a further* request, and this Platform has none. It stays
+    // observable where it still happens, between the attempts of one page request (13.4), which the
+    // "never answers" case below measures on the same queue.
+    expect(waits).toEqual([]);
   });
 });
 
@@ -303,21 +302,21 @@ describe('a Result_Page that never answers (6.2, 13.4, 13.8)', () => {
 });
 
 describe('a page that ends the retrieval', () => {
-  it('keeps the postings of the earlier pages as Partial_Result (7.2, 7.7)', async () => {
-    server = await FixtureServer.start({
-      routes: pageRoutes(['result-list-page-1', 'sign-in-wall']),
-    });
+  it('keeps the postings read above a sign-in wall as Partial_Result (7.2, 7.7)', async () => {
+    server = await FixtureServer.start({ routes: { [routeOf(1)]: documentRoute('sign-in-wall') } });
 
     const factory = createFixturePageFactory({ origin: server.origin, timeoutMs: 2000 });
     const { context, events } = contextFor(factory.openPage);
 
     const result = await adapter.fetch(context);
 
+    // With one permitted Result_Page the Partial_Result is observable on that page rather than
+    // across pages: whatever the sign-in wall left readable is taken over before the page is
+    // classified, and it survives an end that is not `COMPLETED`.
     expect(result.platformStatus).toBe('SIGN_IN_REQUIRED');
     expect(result.partialResult).toBe(true);
-    expect(result.postings).toHaveLength(4);
-    expect(targetsOf(server)).toEqual([routeOf(1), routeOf(2)]);
-    expect(events.at(-1)).toMatchObject({ code: 'platform.signInRequired', pageNumber: 2 });
+    expect(targetsOf(server)).toEqual([routeOf(1)]);
+    expect(events.at(-1)).toMatchObject({ code: 'platform.signInRequired', pageNumber: 1 });
   });
 
   it('reports a sign-in requirement after a redirect to the sign-in page (7.2)', async () => {
@@ -348,7 +347,6 @@ describe('a page that ends the retrieval', () => {
           body: documentOf('rate-limited'),
           headers: { 'retry-after': '120' },
         },
-        [routeOf(2)]: documentRoute('result-list-page-2'),
       },
     });
 
@@ -362,9 +360,9 @@ describe('a page that ends the retrieval', () => {
     expect(events.at(-1)).toMatchObject({ code: 'platform.rateLimited', pageNumber: 1 });
   });
 
-  it('reports an unknown page layout for the changed layout and asks for no second page (6.7)', async () => {
+  it('reports an unknown page layout for the changed layout (6.7)', async () => {
     server = await FixtureServer.start({
-      routes: pageRoutes(['layout-changed', 'result-list-page-2']),
+      routes: { [routeOf(1)]: documentRoute('layout-changed') },
     });
 
     const factory = createFixturePageFactory({ origin: server.origin, timeoutMs: 2000 });

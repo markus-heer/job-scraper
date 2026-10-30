@@ -211,6 +211,8 @@ describe('singleRetrievalPage', () => {
         return { url, status: 200, headers: {} };
       },
       html: async () => CAPTURED_HTML,
+      // A capture performs exactly one retrieval and never paginates (13.12).
+      loadMore: async () => false,
       close: async () => undefined,
     };
     const guarded = singleRetrievalPage(page);

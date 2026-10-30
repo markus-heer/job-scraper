@@ -101,7 +101,8 @@ describe('parseEnvironment', () => {
     ['ROUTING_PROVIDER', 'openrouteservice'],
     ['RELEVANCE_ENABLED', 'yes'],
     ['RELEVANCE_CONCURRENCY', '0'],
-    ['RELEVANCE_MAX_PER_RUN', '2000'],
+    // Above the raised upper bound of 20,000; 2,000 is the documented default and now valid.
+    ['RELEVANCE_MAX_PER_RUN', '20001'],
     ['ENRICHMENT_GRACE_MINUTES', 'ten'],
     ['API_PORT', '80'],
     ['WEB_PORT', '65536'],

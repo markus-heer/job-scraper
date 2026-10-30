@@ -23,6 +23,20 @@
  * What it deliberately does not reproduce: JavaScript execution. {@link FixtureAdapterPage.html}
  * returns the served document, not a rendered DOM. A parser test is about selectors over frozen
  * markup; whether a Platform renders client-side is a question for the `@live` smoke test of 9.5.
+ *
+ * ## How the pagination step of 13.12 is modelled
+ *
+ * {@link FixtureAdapterPage.loadMore} cannot click anything — there is no DOM and no script engine
+ * here. It instead requests the *next block* of the same result list, by re-requesting the last URL
+ * with its `page` parameter incremented, which is the repository-wide convention every adapter
+ * follows and which the fixture routes already serve.
+ *
+ * That makes the fixture document for block *n* the **cumulative** one: block 2's fixture carries
+ * the postings of blocks 1 and 2, because that is what the production page answers after an
+ * appending `load-more` control has run. An adapter therefore behaves identically against both —
+ * it replaces its posting list from each reading rather than appending to it — and a fixture that
+ * carried only the new postings would let an adapter pass here while losing the earlier blocks in
+ * production.
  */
 
 import {
@@ -121,6 +135,12 @@ export class FixtureAdapterPage implements AdapterPage {
 
   #html: string | undefined;
 
+  /** The URL the adapter last asked for, which a pagination step derives its next block from. */
+  #lastRequestedUrl: string | undefined;
+
+  /** The block the page is currently showing; incremented by every {@link loadMore}. */
+  #blockNumber = 1;
+
   #closed = false;
 
   constructor(options: FixturePageOptions) {
@@ -163,6 +183,47 @@ export class FixtureAdapterPage implements AdapterPage {
     return this.#html;
   }
 
+  /**
+   * One pagination step of 13.12, modelled as a request for the next block; see the file comment.
+   *
+   * The `selector` is accepted to satisfy the port and is deliberately unused: there is no DOM here
+   * to match it against. What a test asserts through this method is the adapter's *walk* — how many
+   * blocks it asks for, that it stops when one stops growing, and that it paces each step — while
+   * whether the real control carries that selector is what the `@live` smoke test answers.
+   *
+   * @returns `true` when the next block was served and the document grew, `false` when the route
+   *   answered no further block, which is the end of the result list.
+   */
+  async loadMore(_selector: string): Promise<boolean> {
+    this.#throwIfClosed();
+
+    if (this.#lastRequestedUrl === undefined) {
+      throw new Error('The fixture page has not loaded a Result_Page yet, so it cannot paginate.');
+    }
+
+    const nextUrl = withPageNumber(this.#lastRequestedUrl, this.#blockNumber + 1);
+    const before = this.#html?.length ?? 0;
+
+    const response =
+      this.#queue === undefined
+        ? await this.#retrieve(nextUrl)
+        : await this.#queue.request(() => this.#retrieve(nextUrl), this.#signal);
+
+    // A route that answers an error status serves no further block, and neither does one whose
+    // document did not grow. Both are the end of the result list rather than a failure (13.12).
+    if (response.status !== null && response.status >= 400) {
+      return false;
+    }
+
+    if ((this.#html?.length ?? 0) <= before) {
+      return false;
+    }
+
+    this.#blockNumber += 1;
+
+    return true;
+  }
+
   async close(): Promise<void> {
     this.#closed = true;
   }
@@ -194,6 +255,7 @@ export class FixtureAdapterPage implements AdapterPage {
       });
 
       this.#html = await response.text();
+      this.#lastRequestedUrl = url;
       this.#loads.push({ requestedUrl: url, fixtureUrl, status: response.status });
 
       return {
@@ -254,6 +316,24 @@ export function createFixturePageFactory(options: FixturePageOptions): FixturePa
 /** Response headers under lowercased names, matching what the production page returns. */
 function collectHeaders(headers: Iterable<[string, string]>): Record<string, string> {
   return Object.fromEntries([...headers].map(([name, value]) => [name.toLowerCase(), value]));
+}
+
+/**
+ * The same URL with its `page` parameter set to `pageNumber`, which is how a modelled pagination
+ * step addresses the next block; see the file comment.
+ *
+ * @returns The rewritten URL, or the input unchanged where it forms no URL.
+ */
+function withPageNumber(requestedUrl: string, pageNumber: number): string {
+  try {
+    const url = new URL(requestedUrl);
+
+    url.searchParams.set('page', String(pageNumber));
+
+    return url.toString();
+  } catch {
+    return requestedUrl;
+  }
 }
 
 /** The default retrieval: the global `fetch`, which satisfies {@link FixtureFetch}. */

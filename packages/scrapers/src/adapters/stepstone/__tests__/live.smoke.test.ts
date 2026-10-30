@@ -168,6 +168,11 @@ function recordingPage(page: AdapterPage, loads: string[]): AdapterPage {
       return page.load(url);
     },
     html: () => page.html(),
+    loadMore: async (selector) => {
+      loads.push(`loadMore:${selector}`);
+
+      return page.loadMore(selector);
+    },
     close: () => page.close(),
   };
 }

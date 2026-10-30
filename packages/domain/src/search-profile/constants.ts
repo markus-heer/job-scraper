@@ -65,8 +65,9 @@ export const PLATFORM_ACTIVATION: Readonly<Record<Platform, boolean>> = {
  * Default_Search_Profile by the Profile_Resolver (4.3).
  */
 export const PLATFORM_OVERRIDES: PlatformOverrideMap = {
-  // Stepstone's radius selector offers discrete steps; 30 km keeps the result list focused on Munich.
-  STEPSTONE: { searchRadiusKm: 30 },
+  // No Stepstone entry. It used to set `searchRadiusKm: 30`, which became a compile error when the
+  // radius left that Platform's `supportedFields` — its robots.txt permits only one query parameter,
+  // so no radius can reach the URL (14.2). The commute is rated after retrieval instead (8.1).
   // Jobvector is an industry-specific board, so the industry filter is redundant there.
   JOBVECTOR: { searchLocation: 'München', searchRadiusKm: 50 },
   // Compile error on purpose if uncommented: GLASSDOOR does not declare `employmentType` as supported.

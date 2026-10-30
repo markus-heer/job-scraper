@@ -38,7 +38,7 @@ import {
  * The hook underneath is tested on its own at
  * `src/components/LogView/__tests__/use-log-stream.test.tsx` — the stitching of history and
  * subscription, the five reconnects, the deduplication by sequence. What is asserted here is the
- * view and the route: the messages on the screen newest first (12.2), the Log_View
+ * view and the route: the messages on the screen in ascending creation order (12.2), the Log_View
  * opening as a layer over the route it was linked from and closing back onto it (12.8), the history
  * of a running Scrape_Run reloaded completely and without duplication when it is reopened (12.9),
  * the cancellation of 12.6 where 12.6 asks for it, the summary of 12.10 with the per-Platform rows
@@ -169,7 +169,7 @@ beforeEach(() => {
 });
 
 describe('the Log_View overlay', () => {
-  it('presents the status messages newest first with time and Platform', async () => {
+  it('presents the status messages in ascending creation order with time and Platform', async () => {
     const link = createLink();
 
     renderAppAt(LOG_PATH, [appInfoMock(), endOfRunSummaryMock({ status: 'RUNNING' })], {
@@ -178,21 +178,23 @@ describe('the Log_View overlay', () => {
 
     const table = await findMessageTable();
 
-    // 12.2: newest first. The hook holds the messages in ascending order of the sequence the
-    // server assigned, and the view reverses a copy of that list for display, so the most recent
-    // creation stands at the top.
+    // 12.2: ascending order of creation time, which is the order the hook holds them in and the
+    // order the view renders. An earlier revision reversed a copy for display to put the newest
+    // line on top; that is not what 12.2 asks to be presented, and the E2E assertion of
+    // `e2e/run-control.spec.ts` compares the rendered rows against the stored Log_Stream position
+    // by position, so the two could not both be right.
     expect(messageTextsOf(table)).toEqual([
-      'Jobvector: 2 Seiten gelesen.',
-      'Stepstone: Abfrage gestartet.',
       'Suchlauf gestartet.',
+      'Stepstone: Abfrage gestartet.',
+      'Jobvector: 2 Seiten gelesen.',
     ]);
 
     // 12.3: each line carries its creation time and the Platform it is about. The first message
-    // concerns the whole Scrape_Run, which is the one cell the Web_App words itself; reversed for
-    // display it is the last row now.
+    // concerns the whole Scrape_Run, which is the one cell the Web_App words itself, and in
+    // ascending order it is the first row.
     const rows = within(table).getAllByRole('row').slice(1);
-    const runLine = rows.at(-1);
-    const stepstoneLine = rows.at(-2);
+    const runLine = rows.at(0);
+    const stepstoneLine = rows.at(1);
 
     expect(
       within(runLine as HTMLElement)
@@ -216,17 +218,18 @@ describe('the Log_View overlay', () => {
     expect(link.historyCalls).toEqual([{ runId: RUNNING_RUN_ID, afterSequence: 0 }]);
     expect(link.subscriptionCalls).toEqual([{ runId: RUNNING_RUN_ID, afterSequence: 3 }]);
 
-    // A message created while the Log_View is open is the newest, so it goes to the top.
+    // A message created while the Log_View is open is appended at the end, which is where ascending
+    // creation order puts it (12.2).
     const live = message(4, { platform: 'STEPSTONE', messageDe: 'Stepstone: abgeschlossen.' });
 
     stored.push(live);
     link.emit(live);
 
     expect(messageTextsOf(await findMessageTable())).toEqual([
-      'Stepstone: abgeschlossen.',
-      'Jobvector: 2 Seiten gelesen.',
-      'Stepstone: Abfrage gestartet.',
       'Suchlauf gestartet.',
+      'Stepstone: Abfrage gestartet.',
+      'Jobvector: 2 Seiten gelesen.',
+      'Stepstone: abgeschlossen.',
     ]);
   });
 
@@ -276,13 +279,13 @@ describe('the Log_View overlay', () => {
     await screen.findByRole('dialog', { name: de.log.heading });
 
     // 12.9: reopening reloads the history of the running Scrape_Run completely and without
-    // duplication — five messages, each exactly once, newest first.
+    // duplication — five messages, each exactly once, in ascending creation order (12.2).
     expect(messageTextsOf(await findMessageTable())).toEqual([
-      'Suchlauf abgeschlossen.',
-      'Stepstone: abgeschlossen.',
-      'Jobvector: 2 Seiten gelesen.',
-      'Stepstone: Abfrage gestartet.',
       'Suchlauf gestartet.',
+      'Stepstone: Abfrage gestartet.',
+      'Jobvector: 2 Seiten gelesen.',
+      'Stepstone: abgeschlossen.',
+      'Suchlauf abgeschlossen.',
     ]);
 
     // One query per opening, each from the beginning: the second Log_View is a fresh mount and

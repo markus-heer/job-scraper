@@ -27,6 +27,7 @@ import {
 import {
   adapterFor,
   type AdapterLogEvent,
+  effectivePageBudget,
   MIN_REQUEST_GAP_MS,
   registeredPlatforms,
   RESULT_PAGE_BUDGET,
@@ -84,22 +85,44 @@ describe('requestedPageNumber', () => {
    * The convention every registered Platform_Adapter has to follow for the route table to work.
    *
    * This is the test the file comment calls out: it compares the recovered page number against the
-   * URL the adapter itself builds, for every page up to the limit of 13.3 and for every Platform that
-   * has an adapter. A new adapter is covered automatically, because the registry is what is iterated.
+   * URL the adapter itself builds, for every page it may actually request and for every Platform
+   * that has an adapter. A new adapter is covered automatically, because the registry is what is
+   * iterated.
+   *
+   * **The bound is the adapter's own `pageLimit` where it declares one** (13.13), which is the same
+   * bound `intendedPathsOf` in `../scraper.service.ts` uses. An adapter capped at one Result_Page —
+   * Stepstone, whose robots.txt forbids every pagination shape, and Indeed, whose robots.txt forbids
+   * its only pagination parameter — has no second URL to recover a page number from, and demanding
+   * one would be demanding a URL it is not allowed to request.
    */
   it.each(registeredPlatforms())(
-    'recovers the Result_Page number from every URL the %s adapter builds (13.3)',
+    'recovers the Result_Page number from every URL the %s adapter may request (13.3, 13.13)',
     (platform) => {
       const adapter = adapterFor(platform);
       const profile = profileOf(platform);
 
       expect(adapter).toBeDefined();
 
-      for (let pageNumber = 1; pageNumber <= RESULT_PAGE_BUDGET; pageNumber += 1) {
+      const pageCount = effectivePageBudget(RESULT_PAGE_BUDGET, adapter?.pageLimit);
+
+      expect(pageCount).toBeGreaterThan(0);
+
+      for (let pageNumber = 1; pageNumber <= pageCount; pageNumber += 1) {
         expect(requestedPageNumber(adapter?.resultListUrl(profile, pageNumber) ?? '')).toBe(
           pageNumber,
         );
       }
+    },
+  );
+
+  it.each(registeredPlatforms())(
+    'declares a %s page limit that is at most the Page_Safety_Limit',
+    (platform) => {
+      const limit = adapterFor(platform)?.pageLimit;
+
+      // `undefined` means "no bound of its own", which is the Page_Safety_Limit. A declared one is
+      // always the tighter of the two, never a way to ask for more than 13.10 permits.
+      expect(limit === undefined || limit <= RESULT_PAGE_BUDGET).toBe(true);
     },
   );
 });
@@ -157,7 +180,12 @@ describe('fixturePagePath', () => {
 
 describe('a fixture-mode retrieval', () => {
   it('serves the stored Result_Page over a loopback server and completes', async () => {
-    const platform = 'STEPSTONE';
+    // Jobvector rather than Stepstone, which this used to drive: Stepstone is capped at one
+    // Result_Page because its robots.txt forbids every pagination shape (13.13), so a walk over two
+    // stored pages — which is what this case is about, together with the gap of 13.2 between them —
+    // is not something that Platform can do any more. Jobvector is the registered adapter that still
+    // paginates through its `page` parameter.
+    const platform = 'JOBVECTOR';
     const runtime = new FixtureRetrievalRuntime({ platforms: [platform] });
     const adapter = adapterFor(platform);
     const events: AdapterLogEvent[] = [];

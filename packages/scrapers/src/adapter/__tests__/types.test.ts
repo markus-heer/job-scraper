@@ -16,6 +16,7 @@ import {
   type AdapterPage,
   type AdapterResult,
   buildAdapterResult,
+  effectivePageBudget,
   type PlatformAdapter,
   type RawJobPosting,
   RESULT_PAGE_BUDGET,
@@ -71,6 +72,9 @@ function fixturePage(pages: readonly FixturePage[], record: PageRecord): Adapter
       });
     },
     html: () => Promise.resolve(current?.html ?? ''),
+    // This double paginates through URLs, so it has no in-page control: `false` is the honest
+    // answer of 13.12, "no further block", and not a stub.
+    loadMore: () => Promise.resolve(false),
     close: () => {
       record.closes += 1;
 
@@ -176,9 +180,31 @@ function fakeContext(
 }
 
 describe('the production bounds', () => {
-  it('states the page budget of 13.3 and the page timeout of 6.2', () => {
-    expect(RESULT_PAGE_BUDGET).toBe(10);
+  it('states the Page_Safety_Limit of 13.10 and the page timeout of 6.2', () => {
+    // 100, not the 10 this started at: 13.3 asks for the result list to be read to its end and this
+    // is only the safety net of 13.10 for a Platform that claims a further Result_Page without end.
+    // The binding constraint is the 30-minute window of 13.6, which 100 paced requests stay inside.
+    expect(RESULT_PAGE_BUDGET).toBe(100);
     expect(RESULT_PAGE_TIMEOUT_MS).toBe(30_000);
+  });
+});
+
+describe('effectivePageBudget', () => {
+  it('takes the narrowest of the handed budget, the Page_Safety_Limit and the Platform limit', () => {
+    expect(effectivePageBudget(5)).toBe(5);
+    expect(effectivePageBudget(RESULT_PAGE_BUDGET * 10)).toBe(RESULT_PAGE_BUDGET);
+    expect(effectivePageBudget(50, 1)).toBe(1);
+    expect(effectivePageBudget(1, 50)).toBe(1);
+  });
+
+  it('floors a nonsensical budget at 0 rather than looping, and truncates a fraction', () => {
+    expect(effectivePageBudget(-3)).toBe(0);
+    expect(effectivePageBudget(2.9)).toBe(2);
+  });
+
+  it('falls back to the bound for a non-finite budget', () => {
+    expect(effectivePageBudget(Number.POSITIVE_INFINITY)).toBe(RESULT_PAGE_BUDGET);
+    expect(effectivePageBudget(Number.NaN, 1)).toBe(1);
   });
 });
 

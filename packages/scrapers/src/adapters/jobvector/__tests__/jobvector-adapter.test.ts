@@ -90,6 +90,14 @@ class ScriptedPage implements AdapterPage {
     return this.#html;
   }
 
+  /**
+   * Jobvector paginates through its `page` parameter, not through an in-page control, so `false` is
+   * the honest answer of 13.12 rather than a stub: this scripted page offers no further block.
+   */
+  async loadMore(): Promise<boolean> {
+    return false;
+  }
+
   async close(): Promise<void> {
     this.closeCount += 1;
   }
@@ -240,13 +248,13 @@ describe('the page limit of 13.3', () => {
     });
   });
 
-  it('never reads more than 10 Result_Page, whatever budget it is handed', async () => {
+  it('never reads more Result_Page than the Page_Safety_Limit of 13.10', async () => {
     const page = new ScriptedPage(
-      Array.from({ length: 20 }, (_unused, index) => ({
+      Array.from({ length: RESULT_PAGE_BUDGET + 10 }, (_unused, index) => ({
         html: resultList([`10000${String(index)}`]),
       })),
     );
-    const { context } = contextFor(page, { pageBudget: 50 });
+    const { context } = contextFor(page, { pageBudget: RESULT_PAGE_BUDGET * 10 });
 
     const result = await new JobvectorAdapter().fetch(context);
 

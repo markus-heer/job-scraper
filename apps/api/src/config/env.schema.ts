@@ -154,7 +154,11 @@ export const envSchemaWithoutCommuteThreshold = z.object({
   ANTHROPIC_MODEL: z.string().min(1).max(100),
   RELEVANCE_ENABLED: booleanFlag(),
   RELEVANCE_CONCURRENCY: integerInRange(1, 16),
-  RELEVANCE_MAX_PER_RUN: integerInRange(1, 1_000),
+  // Raised from 1,000 with the Page_Safety_Limit of 13.10: a Scrape_Run that reads a result list to
+  // its end (13.3) can produce several thousand Job_Posting, and a cap below the candidate count
+  // silently leaves the rest unassessed until a later run. The upper bound stays finite because each
+  // assessment is a paid AI_Provider request; the Log_Stream names how many the cap skipped.
+  RELEVANCE_MAX_PER_RUN: integerInRange(1, 20_000),
   ENRICHMENT_GRACE_MINUTES: integerInRange(1, 120),
   USER_AGENT_CONTACT: z.string().min(1).max(200),
   API_PORT: localPort(),

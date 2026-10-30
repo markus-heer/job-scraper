@@ -117,3 +117,28 @@ expectation file in the diff, set its `provenance` to `CAPTURED`, and update
 
 The repository-wide `.prettierignore` excludes `**/__fixtures__/`. A captured document has to stay
 byte-identical to what the Platform served, so neither the HTML nor the JSON beside it is reformatted.
+
+## The `load-more` blocks (13.12)
+
+`load-more-block-1`, `load-more-block-2` and `load-more-block-3` are this Platform's own cases and
+are **not** part of `REQUIRED_FIXTURE_CASES`: the other three Platform paginate through a URL and
+have no control to operate. They exist because Glassdoor ignores the `page` parameter and loads each
+further block behind `<button data-test="load-more">`, so the only way to the rest of its result list
+is to operate that control — which is what `AdapterPage.loadMore` does.
+
+All three are `HAND_AUTHORED`, and they are **cumulative**: block 1 carries two job cards, block 2
+the same two plus two more, block 3 all six. That is not padding. The real control appends to one
+document, so after *n* steps `page.html()` answers a document containing every block revealed so far.
+An adapter therefore replaces its posting list from each reading rather than appending to it, and a
+non-cumulative set here would let an adapter pass these tests while losing the earlier blocks against
+the real Platform.
+
+Block 3 drops the control and carries the end-of-list message instead, which is what makes
+`hasNextPage: false` and the `COMPLETED` end of 13.3 reachable in a test.
+
+**What they do not establish.** Whether Glassdoor still carries `data-test="load-more"`, whether it
+still appends rather than replaces, and how many postings a real block holds. Those are questions for
+the `@live` smoke test and for a re-capture. The captured `result-list-page-1` is the only document in
+this folder the Platform actually served, and its sibling `result-list-page-2` is hand-authored as a
+*last page* — which is why a retrieval over those two ends as `COMPLETED` after one step that reveals
+nothing, the honest "the button outlives the last block it can serve" case.

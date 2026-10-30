@@ -339,6 +339,12 @@ export function singleRetrievalPage(page: AdapterPage): AdapterPage {
       return page.load(url);
     },
     html: () => page.html(),
+    // A capture stores the one document the Platform served for the one URL it was given. Operating
+    // a pagination control would make the stored fixture a document no single request produces, so
+    // the guard refuses it for the same reason it refuses a second load.
+    loadMore: () => {
+      throw new FixtureCaptureSecondRetrievalError();
+    },
     close: () => page.close(),
   };
 }

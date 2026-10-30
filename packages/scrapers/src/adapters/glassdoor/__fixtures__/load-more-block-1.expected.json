@@ -1,0 +1,34 @@
+{
+  "case": "load-more-block-1",
+  "provenance": "HAND_AUTHORED",
+  "description": "first block of the load-more walk of 13.12: two cards and the `data-test=\"load-more\"` control. One of three cumulative documents — block 2 repeats these two cards and adds two, block 3 adds two more and drops the control. Cumulative because the real control appends to one document, so each reading carries every block revealed so far; a non-cumulative set would let an adapter pass here while losing the earlier blocks in production.",
+  "pageNumber": 1,
+  "response": {
+    "status": 200,
+    "headers": {}
+  },
+  "outcome": "POSTINGS",
+  "platformStatus": "COMPLETED",
+  "hasNextPage": true,
+  "readablePostingCount": 2,
+  "postings": [
+    {
+      "postingId": "1020401000001",
+      "title": "Projektmanagerin Pharma (m/w/d)",
+      "employer": "Alpha Pharma GmbH",
+      "workLocation": "München",
+      "publishedAtText": "2T",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/projektmanagerin-alpha-JV_IC2622109_KO0,22.htm?jl=1020401000001",
+      "descriptionText": null
+    },
+    {
+      "postingId": "1020401000002",
+      "title": "Projektleiterin Entwicklung (m/w/d)",
+      "employer": "Beta Life Science AG",
+      "workLocation": "Garching",
+      "publishedAtText": "5T",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/projektleiterin-beta-JV_IC2622109_KO0,20.htm?jl=1020401000002",
+      "descriptionText": null
+    }
+  ]
+}

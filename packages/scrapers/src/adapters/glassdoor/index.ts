@@ -85,8 +85,8 @@ import {
   type AdapterPageResponse,
   type AdapterResult,
   buildAdapterResult,
+  effectivePageBudget,
   type RawJobPosting,
-  RESULT_PAGE_BUDGET,
 } from '../../adapter/types.js';
 import type { PlatformAdapterFor } from '../../registry.js';
 import {
@@ -97,37 +97,10 @@ import {
   resultListCompleteEvent,
 } from './messages.js';
 import { readGlassdoorResultPage, type ResultPageOutcome } from './parse-result-list.js';
-import { GLASSDOOR_RESULT_PAGE_LIMIT, glassdoorResultListUrl } from './result-list-url.js';
+import { GLASSDOOR_LOAD_MORE_SELECTOR, glassdoorResultListUrl } from './result-list-url.js';
 
 /** The Platform this adapter serves. Named once, so no string literal is repeated below. */
 const PLATFORM = 'GLASSDOOR';
-
-/**
- * The Result_Page the retrieval is permitted to read.
- *
- * `context.pageBudget` is the production value of 13.3 and is what the tests shrink to make a page
- * limit observable without ten fixtures. It is additionally capped at {@link RESULT_PAGE_BUDGET} here,
- * so the upper bound of 13.3 holds even if a caller passes a larger budget, and floored at 0 so a
- * nonsensical budget reads no page rather than looping.
- *
- * The third bound is this Platform's own and is the tighter one:
- * {@link GLASSDOOR_RESULT_PAGE_LIMIT} is 1, because Glassdoor ignores the `page` parameter and
- * paginates through a `load-more` button instead, so every further page request re-reads the first
- * block while still paying the 2-second gap of 13.2. That constant carries the full reasoning and the
- * capture it rests on; capping here is what keeps the retrieval from asking ten times for one page.
- *
- * A test may still shrink the budget below it, which is what keeps the `PAGE_LIMIT_REACHED` path and
- * the Partial_Result rule of 7.7 observable; it cannot raise it.
- */
-function effectivePageBudget(pageBudget: number): number {
-  const upperBound = Math.min(RESULT_PAGE_BUDGET, GLASSDOOR_RESULT_PAGE_LIMIT);
-
-  if (!Number.isFinite(pageBudget)) {
-    return upperBound;
-  }
-
-  return Math.min(Math.max(Math.trunc(pageBudget), 0), upperBound);
-}
 
 /** Where a page ended the retrieval: the error that carries the Platform_Status and the log code. */
 function endOfRetrievalError(
@@ -217,68 +190,103 @@ export class GlassdoorAdapter implements PlatformAdapterFor<typeof PLATFORM> {
 
     context.signal.throwIfAborted();
 
-    // One page for the whole retrieval: the queue behind it serialises the loads and paces them, so a
-    // second page would buy nothing and would have to be torn down as well.
+    // One page for the whole retrieval, and for this Platform that is not merely an economy: the
+    // further blocks exist only in *this* page's DOM, because the `load-more` control appends to it.
+    // A second page would start again at block 1.
     const page: AdapterPage = await context.openPage();
+    const url = this.resultListUrl(context.profile, 1);
 
     try {
-      for (let pageNumber = 1; pageNumber <= budget; pageNumber += 1) {
+      let response: AdapterPageResponse;
+
+      try {
+        response = await page.load(url);
+        pagesFetched += 1;
+      } catch (error) {
+        // A cancelled Scrape_Run is not a Platform failure and is not this adapter's to classify.
         context.signal.throwIfAborted();
 
-        const url = this.resultListUrl(context.profile, pageNumber);
+        return endWith(pageRequestError(error, 1, url));
+      }
+
+      const sourceUrl = response.url;
+
+      for (let blockNumber = 1; ; blockNumber += 1) {
+        context.signal.throwIfAborted();
+
         let html: string;
-        let response: AdapterPageResponse;
 
         try {
-          response = await page.load(url);
-          pagesFetched += 1;
           html = await page.html();
         } catch (error) {
-          // A cancelled Scrape_Run is not a Platform failure and is not this adapter's to classify.
           context.signal.throwIfAborted();
 
-          return endWith(pageRequestError(error, pageNumber, url));
+          return endWith(pageRequestError(error, blockNumber, sourceUrl));
         }
 
         const reading = readGlassdoorResultPage({ html, response });
-        const sourceUrl = response.url;
 
-        // Taken over before the classification, whatever the page turned out to be: a sign-in wall or
-        // a bot check can sit above a readable part of the list, and those postings are the
-        // Partial_Result 7.7 keeps. For Glassdoor that is the likely case rather than the exotic one. A
-        // posting that is missing one of the three fields of 6.5 travels on as well; the normalization
-        // stage discards it and writes that event.
+        // **Replaced, not appended.** The `load-more` control grows one document, so each reading
+        // already contains every block revealed so far. Appending would duplicate every earlier
+        // block once per step — harmless for the upsert of 9.4, which is keyed on
+        // `(platform, postingId)`, but it would make `postings.length` and every count derived from
+        // it a fiction. The postings are taken over before the page is classified, whatever it
+        // turned out to be: a sign-in wall or a bot check can sit below a readable part of the list,
+        // and those postings are the Partial_Result 7.7 keeps.
+        postings.length = 0;
         postings.push(...reading.postings);
 
         if (reading.outcome === 'EMPTY_RESULT_LIST') {
-          context.log(pageFetchedEvent(pageNumber, reading.postings.length, sourceUrl));
-          context.log(emptyResultListEvent(pageNumber, sourceUrl));
+          context.log(pageFetchedEvent(blockNumber, reading.postings.length, sourceUrl));
+          context.log(emptyResultListEvent(blockNumber, sourceUrl));
 
           return finish('COMPLETED');
         }
 
         if (reading.outcome !== 'POSTINGS') {
           // The single exit for every end other than a readable page, and the reason 7.8 needs no
-          // counter here: the loop is left, so no further Result_Page URL is built and no further
+          // counter here: the loop is left, so the control is not operated again and no further
           // request is made for this Platform in this Scrape_Run.
-          return endWith(endOfRetrievalError(reading.outcome, pageNumber, sourceUrl));
+          return endWith(endOfRetrievalError(reading.outcome, blockNumber, sourceUrl));
         }
 
-        context.log(pageFetchedEvent(pageNumber, reading.postings.length, sourceUrl));
+        context.log(pageFetchedEvent(blockNumber, reading.postings.length, sourceUrl));
 
         if (!reading.hasNextPage) {
           context.log(resultListCompleteEvent(pagesFetched, postings.length));
 
           return finish('COMPLETED');
         }
+
+        // The Page_Safety_Limit of 13.10, checked only once a further block is actually on offer, so
+        // a result list that ends exactly at the limit reports `COMPLETED` rather than claiming it
+        // was cut short.
+        if (blockNumber >= budget) {
+          context.log(pageLimitReachedEvent(pagesFetched));
+
+          return finish('PAGE_LIMIT_REACHED');
+        }
+
+        let grew: boolean;
+
+        try {
+          grew = await page.loadMore(GLASSDOOR_LOAD_MORE_SELECTOR);
+          pagesFetched += 1;
+        } catch (error) {
+          context.signal.throwIfAborted();
+
+          return endWith(pageRequestError(error, blockNumber + 1, sourceUrl));
+        }
+
+        // The control claimed a further block and delivered none. That is the end of the result
+        // list, not a failure: `hasNextPage` reads a button Glassdoor leaves in the DOM, so it
+        // outlives the last block it can serve.
+        if (!grew) {
+          context.log(resultListCompleteEvent(pagesFetched, postings.length));
+
+          return finish('COMPLETED');
+        }
       }
-
-      // The budget is spent while Glassdoor still offers a further Result_Page: the orderly end of
-      // 13.3. Reported as `PAGE_LIMIT_REACHED`, which makes the result a Partial_Result (7.7), because
-      // the result list of this Platform was not read to its end.
-      context.log(pageLimitReachedEvent(pagesFetched));
-
-      return finish('PAGE_LIMIT_REACHED');
     } finally {
       await page.close();
     }

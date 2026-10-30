@@ -246,16 +246,20 @@ describe('pagination over the two stored result list pages (6.10, 13.3)', () => 
     expect(second.searchParams.get('radius')).toBe(first.searchParams.get('radius'));
   });
 
-  it('never reads more than ten Result_Page, whatever budget it is handed (13.3)', async () => {
-    const always = Array.from({ length: 12 }, () => 'result-list-page-1');
+  it('never reads more Result_Page than the Page_Safety_Limit of 13.10', async () => {
+    const always = Array.from({ length: RESULT_PAGE_BUDGET + 2 }, () => 'result-list-page-1');
 
     server = await FixtureServer.start({ routes: pageRoutes(always) });
 
     const factory = createFixturePageFactory({ origin: server.origin, timeoutMs: 2000 });
-    const { context, events } = contextFor(factory.openPage, { pageBudget: 50 });
+    const { context, events } = contextFor(factory.openPage, {
+      pageBudget: RESULT_PAGE_BUDGET * 10,
+    });
 
     const result = await adapter.fetch(context);
 
+    // A budget above the Page_Safety_Limit cannot raise it, which is what bounds a Platform that
+    // keeps claiming a further Result_Page without end (13.11).
     expect(result.pagesFetched).toBe(RESULT_PAGE_BUDGET);
     expect(server.requests).toHaveLength(RESULT_PAGE_BUDGET);
     expect(result.platformStatus).toBe('PAGE_LIMIT_REACHED');

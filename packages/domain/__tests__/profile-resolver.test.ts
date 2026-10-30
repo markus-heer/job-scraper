@@ -26,19 +26,19 @@ function resolveOrThrow(...args: Parameters<typeof resolveSearchProfile>): Effec
 describe('resolveSearchProfile', () => {
   it('takes the Platform_Override value where the override sets a field (5.2)', () => {
     const profile = resolveOrThrow('STEPSTONE', DEFAULT_SEARCH_PROFILE, {
-      STEPSTONE: { searchRadiusKm: 30 },
+      STEPSTONE: { searchLocation: 'Augsburg' },
     });
 
     expect(profile.criteria).toContainEqual({
-      field: 'searchRadiusKm',
-      value: 30,
+      field: 'searchLocation',
+      value: 'Augsburg',
       provenance: 'OVERRIDE',
     });
   });
 
   it('takes the Default_Search_Profile value where the override leaves a field unset (5.3)', () => {
     const profile = resolveOrThrow('STEPSTONE', DEFAULT_SEARCH_PROFILE, {
-      STEPSTONE: { searchRadiusKm: 30 },
+      STEPSTONE: { searchLocation: 'Augsburg' },
     });
 
     expect(profile.criteria).toContainEqual({

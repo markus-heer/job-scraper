@@ -17,27 +17,30 @@
  *
  * ## What is different about Glassdoor, and what that does to this file
  *
- * **The retrieval reads one Result_Page.** Glassdoor ignores the `page` parameter and paginates
- * through a `load-more` button, so {@link GLASSDOOR_RESULT_PAGE_LIMIT} caps the walk at one page —
- * see the file comment of `../result-list-url.ts` for the decision and the capture it rests on. Three
- * consequences are asserted below rather than left implicit:
+ * **The retrieval paginates through a control, not through a URL.** Glassdoor ignores the `page`
+ * parameter and loads each further block with a request of its own behind
+ * `<button data-test="load-more">`, so the adapter walks *blocks* by calling
+ * {@link AdapterPage.loadMore} with {@link GLASSDOOR_LOAD_MORE_SELECTOR} (13.12) — see the file
+ * comment of `../result-list-url.ts` for the decision and the capture it rests on. Four consequences
+ * are asserted below rather than left implicit:
  *
- * - **The cap is the behaviour, not an accident.** A retrieval handed the production budget of 13.3,
- *   or a larger one, still sends exactly one request, and the second Result_Page route stays
- *   untouched although it is registered and would answer.
- * - **`PAGE_LIMIT_REACHED` is the normal end of a successful Glassdoor retrieval**, and it is where
- *   the Partial_Result of 7.7 is observable for this Platform: the 30 Job_Posting of the page it did
- *   read survive an end that is not `COMPLETED`. That matters here more than elsewhere, because the
- *   design accepts a sign-in wall or a bot check as this Platform's normal answer and the postings
- *   read before one are frequently the only ones there will be.
- * - **The gap of 13.2 cannot be observed between two Result_Page here**, because there is no second
- *   one — which is exactly what the cap bought. It is observed where it still happens: between the
- *   attempts of one page request (13.4), on the queue's own minimum.
+ * - **One `load`, then one step per further block.** The whole retrieval uses a single page, because
+ *   the further blocks exist only in *that* page's DOM; a second page would start again at block 1.
+ * - **A reading replaces the posting list, it does not extend it.** The control appends to one
+ *   document, so each reading already carries every block revealed so far. The fixture documents are
+ *   cumulative for the same reason; `../__fixtures__/README.md` records it.
+ * - **A control that claims a further block and delivers none ends the retrieval as `COMPLETED`.**
+ *   `hasNextPage` reads a button Glassdoor leaves in the DOM, so it outlives the last block it can
+ *   serve. That is the end of the result list and not a failure, and it is the case the
+ *   non-cumulative sibling fixtures exercise.
+ * - **`PAGE_LIMIT_REACHED` now means the Page_Safety_Limit of 13.10 was actually reached**, not that
+ *   the adapter gave up after one page. It is still where the Partial_Result of 7.7 is observable
+ *   for this Platform.
  *
- * An end that is not `COMPLETED` is therefore reached on page 1 in this file, and that is the whole of
- * it: a sign-in wall, a bot check, a changed layout or a reported rate limit on the one page the
- * retrieval reads closes the Platform with the Platform_Status the observation deserves rather than
- * with a thrown error (7.3), and nothing follows it in the same Scrape_Run (7.8).
+ * An end that is not `COMPLETED` can be reached on any block: a sign-in wall, a bot check, a changed
+ * layout or a reported rate limit closes the Platform with the Platform_Status the observation
+ * deserves rather than with a thrown error (7.3), and nothing follows it in the same Scrape_Run
+ * (7.8) — the control is not operated again.
  *
  * `result-list-page-1` is the response glassdoor.de served on 2026-10-29; its seven siblings are
  * hand-authored. `../__fixtures__/README.md` states what each does and does not establish.
@@ -76,7 +79,7 @@ import {
   PlatformQueue,
 } from '../../../scheduling/platform-queue.js';
 import { GlassdoorAdapter } from '../index.js';
-import { GLASSDOOR_RESULT_PAGE_LIMIT } from '../result-list-url.js';
+import { GLASSDOOR_LOAD_MORE_SELECTOR } from '../result-list-url.js';
 
 /** The effective Search_Profile of Glassdoor as the Job_Tool ships it (3.1, 4.3). */
 const PROFILE: EffectiveSearchProfile = (() => {
@@ -93,6 +96,20 @@ const adapter = new GlassdoorAdapter();
 
 /** How many Job_Posting the captured Result_Page yields, readable or not. */
 const CAPTURED_PAGE_POSTINGS = 30;
+
+/**
+ * The cumulative blocks of the `load-more` walk of 13.12, in order.
+ *
+ * Glassdoor's own cases, deliberately **not** added to `REQUIRED_FIXTURE_CASES`: that list is the
+ * eight every Platform_Adapter is expected to have, and the other three Platform paginate through a
+ * URL and have no control to operate. Each document here carries every posting revealed so far,
+ * because the real control appends to one document; `../__fixtures__/README.md` records it.
+ */
+const LOAD_MORE_BLOCK_CASES = [
+  'load-more-block-1',
+  'load-more-block-2',
+  'load-more-block-3',
+] as const;
 
 /** The HTML of every required fixture case, read once. */
 const html = new Map<string, string>();
@@ -204,7 +221,7 @@ function targetsOf(server: FixtureServer): readonly string[] {
 let server: FixtureServer | undefined;
 
 beforeAll(async () => {
-  for (const fixtureCase of REQUIRED_FIXTURE_CASES) {
+  for (const fixtureCase of [...REQUIRED_FIXTURE_CASES, ...LOAD_MORE_BLOCK_CASES]) {
     html.set(fixtureCase, await readFixtureHtml({ platform: 'GLASSDOOR', fixtureCase }));
     expectations.set(
       fixtureCase,
@@ -233,7 +250,7 @@ describe.each(REQUIRED_FIXTURE_CASES)('a retrieval of the single Result_Page %s'
 });
 
 describe('the one Result_Page a Glassdoor retrieval reads (6.2, 6.3, 13.3)', () => {
-  it('reads one page and asks for no second, although a second would answer', async () => {
+  it('operates the control, and ends COMPLETED where it reveals no further block', async () => {
     server = await FixtureServer.start({
       routes: pageRoutes(['result-list-page-1', 'result-list-page-2']),
     });
@@ -243,22 +260,75 @@ describe('the one Result_Page a Glassdoor retrieval reads (6.2, 6.3, 13.3)', () 
 
     const result = await adapter.fetch(context);
 
-    // The cap is the behaviour, not an accident: the page-2 route is registered and would serve a
-    // document, and it stays untouched.
-    expect(result.pagesFetched).toBe(GLASSDOOR_RESULT_PAGE_LIMIT);
+    // The captured block 1 offers a further block through its `load-more` control, so the adapter
+    // operates it — which the fixture page models as a request for the next block (13.12).
+    expect(targetsOf(server)).toEqual([routeOf(1), routeOf(2)]);
+    // `result-list-page-2` is hand-authored as a *last page* and is not a cumulative block, so the
+    // document did not grow. That is the end of the result list, reported as `COMPLETED`, and the
+    // postings of block 1 survive it — which is the case this Platform's control makes likely,
+    // because the button outlives the last block it can serve.
+    expect(result.platformStatus).toBe('COMPLETED');
+    expect(result.partialResult).toBe(false);
     expect(result.postings).toHaveLength(CAPTURED_PAGE_POSTINGS);
-    expect(targetsOf(server)).toEqual([routeOf(1)]);
-    // `PAGE_LIMIT_REACHED` is the ordinary end of a *successful* Glassdoor retrieval, because the
-    // captured page keeps offering a further one through its `load-more` control.
-    expect(result.platformStatus).toBe('PAGE_LIMIT_REACHED');
-    // 7.7: that end is orderly and is still an incomplete reading of the result list — and it is
-    // where the Partial_Result is observable for this Platform, with the 30 postings of the page it
-    // did read surviving it.
-    expect(result.partialResult).toBe(true);
     expect(events.map((event) => event.code)).toEqual([
       'platform.pageFetched',
-      'platform.pageLimit',
+      'platform.resultListComplete',
     ]);
+  });
+
+  it('walks every cumulative block and reports COMPLETED at the last one', async () => {
+    server = await FixtureServer.start({ routes: pageRoutes(LOAD_MORE_BLOCK_CASES) });
+
+    const factory = createFixturePageFactory({ origin: server.origin, timeoutMs: 2000 });
+    const { context, events } = contextFor(factory.openPage);
+
+    const result = await adapter.fetch(context);
+
+    // Three cumulative documents, so three readings: block 3 carries every posting and drops the
+    // control, which is the result list read to its end (13.3).
+    expect(targetsOf(server)).toEqual([routeOf(1), routeOf(2), routeOf(3)]);
+    expect(result.platformStatus).toBe('COMPLETED');
+    expect(result.partialResult).toBe(false);
+    // Replaced per reading, not accumulated: the six postings are the six distinct ones of block 3,
+    // not 2 + 4 + 6 with the earlier blocks counted again.
+    expect(result.postings).toHaveLength(6);
+    expect(result.postings.map((posting) => posting.postingId)).toEqual([
+      '1020401000001',
+      '1020401000002',
+      '1020401000003',
+      '1020401000004',
+      '1020401000005',
+      '1020401000006',
+    ]);
+    expect(events.map((event) => event.code)).toEqual([
+      'platform.pageFetched',
+      'platform.pageFetched',
+      'platform.pageFetched',
+      'platform.resultListComplete',
+    ]);
+  });
+
+  it('stops at the Page_Safety_Limit while the control still offers a further block', async () => {
+    server = await FixtureServer.start({ routes: pageRoutes(LOAD_MORE_BLOCK_CASES) });
+
+    const factory = createFixturePageFactory({ origin: server.origin, timeoutMs: 2000 });
+    const { context, events } = contextFor(factory.openPage, { pageBudget: 2 });
+
+    const result = await adapter.fetch(context);
+
+    // Block 2 still carries the control, so the budget is what ends this retrieval (13.10) — and
+    // `PAGE_LIMIT_REACHED` now means exactly that rather than "gave up after one page".
+    expect(result.platformStatus).toBe('PAGE_LIMIT_REACHED');
+    expect(result.partialResult).toBe(true);
+    expect(result.postings).toHaveLength(4);
+    expect(targetsOf(server)).toEqual([routeOf(1), routeOf(2)]);
+    expect(events.at(-1)?.code).toBe('platform.pageLimit');
+  });
+
+  it('names the load-more control of this Platform', () => {
+    // The selector is the adapter's one piece of knowledge about the control; the `@live` smoke test
+    // is what answers whether Glassdoor still carries it.
+    expect(GLASSDOOR_LOAD_MORE_SELECTOR).toBe('button[data-test="load-more"]');
   });
 
   it('keeps the page parameter of the repository-wide convention in its URL', () => {
@@ -278,24 +348,21 @@ describe('the one Result_Page a Glassdoor retrieval reads (6.2, 6.3, 13.3)', () 
     expect(second.searchParams.get('radius')).toBe(first.searchParams.get('radius'));
   });
 
-  it('reads one Result_Page whatever budget it is handed (13.3)', async () => {
+  it('never reads more blocks than the Page_Safety_Limit, whatever budget it is handed (13.10)', async () => {
     const always = Array.from({ length: 12 }, () => 'result-list-page-1');
 
     server = await FixtureServer.start({ routes: pageRoutes(always) });
 
     const factory = createFixturePageFactory({ origin: server.origin, timeoutMs: 2000 });
-    const { context, events } = contextFor(factory.openPage, { pageBudget: 50 });
+    const { context } = contextFor(factory.openPage, { pageBudget: RESULT_PAGE_BUDGET * 10 });
 
     const result = await adapter.fetch(context);
 
-    // Neither the production budget of 13.3 nor a larger one raises this Platform's own cap, which
-    // is what keeps nine of ten page requests from being spent on a block already read.
-    expect(result.pagesFetched).toBe(GLASSDOOR_RESULT_PAGE_LIMIT);
-    expect(GLASSDOOR_RESULT_PAGE_LIMIT).toBeLessThanOrEqual(RESULT_PAGE_BUDGET);
-    expect(server.requests).toHaveLength(GLASSDOOR_RESULT_PAGE_LIMIT);
-    expect(result.platformStatus).toBe('PAGE_LIMIT_REACHED');
-    expect(result.partialResult).toBe(true);
-    expect(events.at(-1)?.code).toBe('platform.pageLimit');
+    // A budget above the Page_Safety_Limit cannot raise it. The retrieval ends earlier here anyway,
+    // because every route serves the same document so the first step reveals no growth — which is
+    // the honest end of the result list and is asserted on its own above.
+    expect(result.pagesFetched).toBeLessThanOrEqual(RESULT_PAGE_BUDGET);
+    expect(server.requests.length).toBeLessThanOrEqual(RESULT_PAGE_BUDGET);
   });
 
   it('reads one page and reports a complete result list where the search matched nothing', async () => {
@@ -316,25 +383,23 @@ describe('the one Result_Page a Glassdoor retrieval reads (6.2, 6.3, 13.3)', () 
   });
 });
 
-describe('the gap between two page requests (13.2)', () => {
-  it('carries the minimum gap and spends no wait on a second Result_Page', async () => {
+describe('the gap between two page requests (13.2, 13.12)', () => {
+  it('paces a pagination step like any other page request', async () => {
     const { queue, waits } = pacedQueue();
 
-    server = await FixtureServer.start({
-      routes: pageRoutes(['result-list-page-1', 'result-list-page-1']),
-    });
+    server = await FixtureServer.start({ routes: pageRoutes(LOAD_MORE_BLOCK_CASES) });
 
     const factory = createFixturePageFactory({ origin: server.origin, timeoutMs: 2000, queue });
 
     const result = await adapter.fetch(contextFor(factory.openPage).context);
 
-    expect(result.pagesFetched).toBe(GLASSDOOR_RESULT_PAGE_LIMIT);
+    // 13.12: each step of the control counts as a page request, so the gap of 13.2 is paid before
+    // each one. Three blocks means one `load` and two steps, hence two gaps — this is what the cap
+    // used to make unobservable for this Platform.
+    expect(result.pagesFetched).toBe(3);
     expect(queue.minDelayMs).toBe(MIN_REQUEST_GAP_MS);
-    // No wait at all: the gap of 13.2 is paid *before a further* request, and this Platform's cap
-    // means there is none. That is the point of the cap — nine gaps of two seconds each used to be
-    // spent re-reading the first block. The gap is still observable where it still happens, between
-    // the attempts of one page request (13.4), which the "never answers" case below measures.
-    expect(waits).toEqual([]);
+    expect(waits).toHaveLength(2);
+    expect(waits.every((wait) => wait >= MIN_REQUEST_GAP_MS)).toBe(true);
   });
 });
 

@@ -16,13 +16,13 @@ import { useLogStream } from './use-log-stream';
  *
  * Four blocks, each the whole of one acceptance criterion:
  *
- * - **The message list (12.2, 12.3).** Every status message the Scrape_Run has produced, shown
- *   newest first. `useLogStream` holds the list in ascending order of creation and that held order
- *   is never sorted: it appends only above the highest sequence it holds, and that sequence is the
- *   server's own order of creation — strictly monotonic and gapless per Scrape_Run. The view
- *   reverses a copy of that list for display only, so the newest line is on top while a hole in the
- *   sequence still shows rather than being sorted away. "At least the last 500" is the server's
- *   default `limit` on `logMessages`, which is why no such number appears anywhere on this side.
+ * - **The message list (12.2, 12.3).** Every status message the Scrape_Run has produced, in
+ *   ascending order of creation time, which is what 12.2 asks to be *presented*. `useLogStream`
+ *   holds the list in that order and it is neither sorted nor reversed here: the hook appends only
+ *   above the highest sequence it holds, and that sequence is the server's own order of creation —
+ *   strictly monotonic and gapless per Scrape_Run — so a hole in the sequence shows rather than
+ *   being sorted away. "At least the last 500" is the server's default `limit` on `logMessages`,
+ *   which is why no such number appears anywhere on this side.
  * - **"Suchlauf abbrechen" (12.6).** Mounted next to the list, which is where 12.6 puts it, and only
  *   while the Scrape_Run is running — a finished run has nothing to cancel, and 12.14 would answer
  *   the press with a rejection.
@@ -103,18 +103,22 @@ export function LogView({ runId }: LogViewProps) {
           </thead>
           <tbody>
             {/*
-              12.2 reversed for display: the newest line stays on top. `useLogStream` still hands
-              the list over in ascending creation order — the server's strictly monotonic, gapless
-              sequence — and that order is not touched. Only the render is reversed, on a copy, so a
-              hole in the sequence still shows rather than being sorted away. Reversing the sequence
-              order is reversing the creation-date order, because the sequence rises with createdAt.
+              12.2 asks for the status messages to be *presented* in ascending order of their
+              creation time, so the list is rendered in the order `useLogStream` hands it over.
+
+              An earlier revision reversed a copy here to keep the newest line on top. That reads
+              well for a running Scrape_Run but it is not what 12.2 says, and the E2E assertion in
+              `e2e/run-control.spec.ts` — which compares the rendered rows against the Log_Stream
+              the API_Service stored, position by position — is what caught it. If a newest-first
+              presentation is wanted, 12.2 is the thing to change first.
+
+              Not sorted here either: the hook appends only above the highest sequence it holds, and
+              that sequence is the server's own creation order, strictly monotonic and gapless per
+              Scrape_Run. So a hole in the sequence still shows rather than being sorted away.
             */}
-            {messages
-              .slice()
-              .reverse()
-              .map((message) => (
-                <LogLine key={`${message.runId}-${String(message.sequence)}`} message={message} />
-              ))}
+            {messages.map((message) => (
+              <LogLine key={`${message.runId}-${String(message.sequence)}`} message={message} />
+            ))}
           </tbody>
         </table>
       )}

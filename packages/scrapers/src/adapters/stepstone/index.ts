@@ -54,8 +54,8 @@ import {
   type AdapterPageResponse,
   type AdapterResult,
   buildAdapterResult,
+  effectivePageBudget,
   type RawJobPosting,
-  RESULT_PAGE_BUDGET,
 } from '../../adapter/types.js';
 import type { PlatformAdapterFor } from '../../registry.js';
 import {
@@ -66,26 +66,10 @@ import {
   resultListCompleteEvent,
 } from './messages.js';
 import { readStepstoneResultPage, type ResultPageOutcome } from './parse-result-list.js';
-import { stepstoneResultListUrl } from './result-list-url.js';
+import { STEPSTONE_RESULT_PAGE_LIMIT, stepstoneResultListUrl } from './result-list-url.js';
 
 /** The Platform this adapter serves. Named once, so no string literal is repeated below. */
 const PLATFORM = 'STEPSTONE';
-
-/**
- * The Result_Page the retrieval is permitted to read.
- *
- * `context.pageBudget` is the production value of 13.3 and is what the tests shrink to make a page
- * limit observable without ten fixtures. It is additionally capped at {@link RESULT_PAGE_BUDGET} here,
- * so the upper bound of 13.3 holds even if a caller passes a larger budget, and floored at 0 so a
- * nonsensical budget reads no page rather than looping.
- */
-function effectivePageBudget(pageBudget: number): number {
-  if (!Number.isFinite(pageBudget)) {
-    return RESULT_PAGE_BUDGET;
-  }
-
-  return Math.min(Math.max(Math.trunc(pageBudget), 0), RESULT_PAGE_BUDGET);
-}
 
 /** Where a page ended the retrieval: the error that carries the Platform_Status and the log code. */
 function endOfRetrievalError(
@@ -143,6 +127,12 @@ export class StepstoneAdapter implements PlatformAdapterFor<typeof PLATFORM> {
   /** What Stepstone can express in its result list query (4.2). */
   readonly capability: PlatformCapabilityMap[typeof PLATFORM] = PLATFORM_CAPABILITIES[PLATFORM];
 
+  /**
+   * One Result_Page, because no pagination shape of this Platform has an address its robots.txt
+   * permits (13.13). See {@link STEPSTONE_RESULT_PAGE_LIMIT} for the measured decision table.
+   */
+  readonly pageLimit = STEPSTONE_RESULT_PAGE_LIMIT;
+
   /** The result list entry point of one page (14.1, 14.7). See `./result-list-url.ts`. */
   readonly resultListUrl = stepstoneResultListUrl;
 
@@ -156,7 +146,7 @@ export class StepstoneAdapter implements PlatformAdapterFor<typeof PLATFORM> {
    */
   async fetch(context: AdapterContext): Promise<AdapterResult> {
     const postings: RawJobPosting[] = [];
-    const budget = effectivePageBudget(context.pageBudget);
+    const budget = effectivePageBudget(context.pageBudget, this.pageLimit);
     let pagesFetched = 0;
 
     /** One {@link AdapterResult} from the state collected so far. */

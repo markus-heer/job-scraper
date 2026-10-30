@@ -24,21 +24,21 @@ an empty list, and the Platform can be deactivated in the source code for exactl
 
 ## At a glance
 
-| Item                                      | Value                                                                   |
-| ----------------------------------------- | ----------------------------------------------------------------------- |
-| Platform                                  | `GLASSDOOR`                                                             |
-| Activation in the source code             | activated (`PLATFORM_ACTIVATION.GLASSDOOR` is `true`)                   |
-| Origin                                    | `https://www.glassdoor.de`                                              |
-| Result list path shape                    | `/Job/jobs.htm` with every criterion in the query string                |
-| Path the Platform serves the response for | its own canonical `/Job/…-jobs-SRCH_KO0,142.htm`                        |
-| Maximum pages per Scrape_Run              | 1 (`GLASSDOOR_RESULT_PAGE_LIMIT`), below the 10 of `RESULT_PAGE_BUDGET` |
-| Minimum gap between requests              | 2 s (`MIN_REQUEST_GAP_MS`), or a longer stated `Crawl-delay`            |
-| Attempts per Result_Page                  | at most 3 (`MAX_REQUEST_ATTEMPTS`)                                      |
-| Time limit per Result_Page                | 30 s (`RESULT_PAGE_TIMEOUT_MS`)                                         |
-| Sign-in                                   | never; no credentials are supplied and no storage state is reused       |
-| Last terms-of-use review                  | not yet performed — see [Terms-of-use review](#terms-of-use-review)     |
-| Last robots.txt review                    | 2026-10-29, path permitted, no `Crawl-delay` stated                     |
-| Last capture against the live Platform    | 2026-10-29, HTTP 200, 30 readable Job_Posting                           |
+| Item                                      | Value                                                                                |
+| ----------------------------------------- | ------------------------------------------------------------------------------------ |
+| Platform                                  | `GLASSDOOR`                                                                          |
+| Activation in the source code             | activated (`PLATFORM_ACTIVATION.GLASSDOOR` is `true`)                                |
+| Origin                                    | `https://www.glassdoor.de`                                                           |
+| Result list path shape                    | `/Job/jobs.htm` with every criterion in the query string                             |
+| Path the Platform serves the response for | its own canonical `/Job/…-jobs-SRCH_KO0,142.htm`                                     |
+| Maximum pages per Scrape_Run              | the Page_Safety_Limit of 100 (`RESULT_PAGE_BUDGET`); the walk ends at the last block |
+| Minimum gap between requests              | 2 s (`MIN_REQUEST_GAP_MS`), or a longer stated `Crawl-delay`                         |
+| Attempts per Result_Page                  | at most 3 (`MAX_REQUEST_ATTEMPTS`)                                                   |
+| Time limit per Result_Page                | 30 s (`RESULT_PAGE_TIMEOUT_MS`)                                                      |
+| Sign-in                                   | never; no credentials are supplied and no storage state is reused                    |
+| Last terms-of-use review                  | not yet performed — see [Terms-of-use review](#terms-of-use-review)                  |
+| Last robots.txt review                    | 2026-10-29, path permitted, no `Crawl-delay` stated                                  |
+| Last capture against the live Platform    | 2026-10-29, HTTP 200, 30 readable Job_Posting                                        |
 
 ## Source URL of the retrieved result list
 
@@ -124,12 +124,12 @@ missing either of the two mandatory Criterion_Field of Glassdoor.
 
 Exactly one path family, on one origin:
 
-| What              | Path                                              | When                                                                             |
-| ----------------- | ------------------------------------------------- | -------------------------------------------------------------------------------- |
-| robots.txt        | `https://www.glassdoor.de/robots.txt`             | once per Platform and Scrape_Run, before page 1                                  |
-| Result_Page 1     | `/Job/jobs.htm?sc.keyword=…` (filters as above)   | always, if robots.txt permits it                                                 |
-| Result_Page 2 …   | the same path with `&page=<n>`                    | **never** — `GLASSDOOR_RESULT_PAGE_LIMIT` is 1; see the pagination section below |
-| Followed redirect | the Platform's own `/Job/…-jobs-SRCH_KO0,142.htm` | whenever Glassdoor rewrites the request, which it did on every capture           |
+| What              | Path                                              | When                                                                                           |
+| ----------------- | ------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| robots.txt        | `https://www.glassdoor.de/robots.txt`             | once per Platform and Scrape_Run, before page 1                                                |
+| Result_Page 1     | `/Job/jobs.htm?sc.keyword=…` (filters as above)   | always, if robots.txt permits it                                                               |
+| Further blocks    | no URL of their own                               | reached by operating `button[data-test="load-more"]` (13.12); see the pagination section below |
+| Followed redirect | the Platform's own `/Job/…-jobs-SRCH_KO0,142.htm` | whenever Glassdoor rewrites the request, which it did on every capture                         |
 
 The `www` host is the one the robots.txt is read from and the one every page request goes to. The adapter builds no
 canonical `SRCH_…` URL itself; that path is reached only because the Platform redirects onto it, and it is the URL the

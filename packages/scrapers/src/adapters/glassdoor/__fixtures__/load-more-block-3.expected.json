@@ -1,0 +1,70 @@
+{
+  "case": "load-more-block-3",
+  "provenance": "HAND_AUTHORED",
+  "description": "last block of the load-more walk of 13.12, cumulative: all six cards, the `data-test=\"load-more\"` control gone and the end-of-list message in its place. `hasNextPage: false` is what ends the retrieval as `COMPLETED` — the result list read to its end (13.3), which is the outcome the one-page cap used to make unreachable for this Platform.",
+  "pageNumber": 3,
+  "response": {
+    "status": 200,
+    "headers": {}
+  },
+  "outcome": "POSTINGS",
+  "platformStatus": "COMPLETED",
+  "hasNextPage": false,
+  "readablePostingCount": 6,
+  "postings": [
+    {
+      "postingId": "1020401000001",
+      "title": "Projektmanagerin Pharma (m/w/d)",
+      "employer": "Alpha Pharma GmbH",
+      "workLocation": "München",
+      "publishedAtText": "2T",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/projektmanagerin-alpha-JV_IC2622109_KO0,22.htm?jl=1020401000001",
+      "descriptionText": null
+    },
+    {
+      "postingId": "1020401000002",
+      "title": "Projektleiterin Entwicklung (m/w/d)",
+      "employer": "Beta Life Science AG",
+      "workLocation": "Garching",
+      "publishedAtText": "5T",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/projektleiterin-beta-JV_IC2622109_KO0,20.htm?jl=1020401000002",
+      "descriptionText": null
+    },
+    {
+      "postingId": "1020401000003",
+      "title": "Projektmanager Anlagenbau (m/w/d)",
+      "employer": "Gamma Technik SE",
+      "workLocation": "Augsburg",
+      "publishedAtText": "9T",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/projektmanager-gamma-JV_IC2622109_KO0,20.htm?jl=1020401000003",
+      "descriptionText": null
+    },
+    {
+      "postingId": "1020401000004",
+      "title": "Project Lead Biotech (m/w/d)",
+      "employer": "Delta Biotech GmbH",
+      "workLocation": "Martinsried",
+      "publishedAtText": "14T",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/project-lead-delta-JV_IC2622109_KO0,18.htm?jl=1020401000004",
+      "descriptionText": null
+    },
+    {
+      "postingId": "1020401000005",
+      "title": "Teilprojektleiterin Qualitätssicherung (m/w/d)",
+      "employer": "Epsilon Consulting AG",
+      "workLocation": "Ingolstadt",
+      "publishedAtText": "21T",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/teilprojektleiterin-epsilon-JV_IC2622109_KO0,27.htm?jl=1020401000005",
+      "descriptionText": null
+    },
+    {
+      "postingId": "1020401000006",
+      "title": "Senior Projektmanagerin Zulassung (m/w/d)",
+      "employer": "Zeta Pharma Services SE",
+      "workLocation": "Regensburg",
+      "publishedAtText": "30T+",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/senior-projektmanagerin-zeta-JV_IC2622109_KO0,28.htm?jl=1020401000006",
+      "descriptionText": null
+    }
+  ]
+}

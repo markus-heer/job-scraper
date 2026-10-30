@@ -11,35 +11,33 @@ this document says so rather than presenting it as settled — see [Provisional 
 
 ## At a glance
 
-| Item                                   | Value                                                               |
-| -------------------------------------- | ------------------------------------------------------------------- |
-| Platform                               | `STEPSTONE`                                                         |
-| Origin                                 | `https://www.stepstone.de`                                          |
-| Result list path shape                 | `/jobs/<job-title-slug>/in-<location-slug>`                         |
-| Maximum pages per Scrape_Run           | 10 (`RESULT_PAGE_BUDGET`)                                           |
-| Minimum gap between requests           | 2 s (`MIN_REQUEST_GAP_MS`), or a longer stated `Crawl-delay`        |
-| Attempts per Result_Page               | at most 3 (`MAX_REQUEST_ATTEMPTS`)                                  |
-| Time limit per Result_Page             | 30 s (`RESULT_PAGE_TIMEOUT_MS`)                                     |
-| Sign-in                                | never; no credentials are supplied and no storage state is reused   |
-| Last terms-of-use review               | not yet performed — see [Terms-of-use review](#terms-of-use-review) |
-| Last capture against the live Platform | none yet — see [Fixtures](#fixtures-and-the-refresh-loop)           |
+| Item                                   | Value                                                                |
+| -------------------------------------- | -------------------------------------------------------------------- |
+| Platform                               | `STEPSTONE`                                                          |
+| Origin                                 | `https://www.stepstone.de`                                           |
+| Result list path shape                 | `/jobs/<job-title-slug>/in-<location-slug>`                          |
+| Maximum pages per Scrape_Run           | 1 (`STEPSTONE_RESULT_PAGE_LIMIT`) — no pagination shape is permitted |
+| Minimum gap between requests           | 2 s (`MIN_REQUEST_GAP_MS`), or a longer stated `Crawl-delay`         |
+| Attempts per Result_Page               | at most 3 (`MAX_REQUEST_ATTEMPTS`)                                   |
+| Time limit per Result_Page             | 30 s (`RESULT_PAGE_TIMEOUT_MS`)                                      |
+| Sign-in                                | never; no credentials are supplied and no storage state is reused    |
+| Last terms-of-use review               | not yet performed — see [Terms-of-use review](#terms-of-use-review)  |
+| Last capture against the live Platform | `robots.txt` on 2026-10-29; no Result_Page captured yet              |
 
 ## Source URL of the retrieved result list
 
-The result list URL is built from the effective Search_Profile of Stepstone, never hand-written. With the
-Default_Search_Profile and the Stepstone Platform_Override currently in the source code (`jobTitle` "Projektmanagerin",
-`searchLocation` "München", six title synonyms, `searchRadiusKm` 30 from the override, `employmentType` `PERMANENT`,
-`publicationPeriodDays` 30), the first Result_Page is:
+The result list URL is built from the effective Search_Profile of Stepstone, never hand-written. It carries the job
+title and the search location in the **path** and the title synonyms in the single `q` parameter, and nothing else — see
+[robots.txt](#robotstxt) for why that is the whole of it. With the Default_Search_Profile currently in the source code
+(`jobTitle` "Projektmanagerin", `searchLocation` "München", six title synonyms), the one Result_Page is:
 
 ```text
-https://www.stepstone.de/jobs/projektmanagerin/in-muenchen?q=%22Projektmanagerin%22+OR+%22Projektmanager%22+OR+%22Project+Manager%22+OR+%22Projektleiterin%22+OR+%22Projektleiter%22+OR+%22Project+Lead%22+OR+%22Teilprojektleiterin%22&radius=30&ag=age_30&ct=permanent
+https://www.stepstone.de/jobs/projektmanagerin/in-muenchen?q=%22Projektmanagerin%22+OR+%22Projektmanager%22+OR+%22Project+Manager%22+OR+%22Projektleiterin%22+OR+%22Projektleiter%22+OR+%22Project+Lead%22+OR+%22Teilprojektleiterin%22
 ```
 
-Every following Result_Page is the same URL with `&page=<n>` appended:
-
-```text
-https://www.stepstone.de/jobs/projektmanagerin/in-muenchen?q=...&radius=30&ag=age_30&ct=permanent&page=2
-```
+**There is no following Result_Page.** The page number reaches no parameter at all, so `resultListUrl(profile, n)`
+answers that same URL for every `n`, and `STEPSTONE_RESULT_PAGE_LIMIT` keeps the adapter from requesting it twice. A
+Search_Profile without synonyms yields the bare path with no query string.
 
 `page` is omitted for the first Result_Page on purpose: that URL is the result list entry point — the address a person
 opens, the one the robots.txt decision is made for, and the one documented here.
@@ -157,9 +155,58 @@ The decision is re-evaluated on every Scrape_Run, so a change on Stepstone's sid
 exists. The fixture capture script runs the same gate before its single request, because a capture is a request like any
 other.
 
-**The robots.txt of stepstone.de has not been read in this repository yet.** Whether the result list path is allowed and
-whether a `Crawl-delay` is stated are therefore open questions that the first capture or the first real Scrape_Run
-answers; the gate decides it at runtime either way.
+### What it says, measured on 2026-10-29
+
+The body was retrieved with the honest Job_Tool user agent (HTTP 200, 3250 bytes, header `last updated 06 08 26 JM`) and
+is stored byte-identically at `packages/scrapers/src/adapters/stepstone/__fixtures__/robots.txt` with a `.capture.json`
+sidecar. The applying group is `User-agent: *`: the Job_Tool identifies as `JobTool/0.1`, whose `robots-parser` token is
+`jobtool`, which matches none of the named groups. **No `Crawl-delay` is stated**, so the 2-second floor of 13.2 is the
+gap in force.
+
+Three lines decide this adapter:
+
+```text
+Disallow: /jobs/*?*
+Allow:    /jobs/*?q=*
+Disallow: /jobs/*?q*&*
+```
+
+Evaluated with the same `robots-parser` the `RobotsCache` uses:
+
+| Intended path                                                       | Decision   | Deciding line            |
+| ------------------------------------------------------------------- | ---------- | ------------------------ |
+| `/jobs/projektmanagerin/in-muenchen`                                | allowed    | no rule matches          |
+| `/jobs/projektmanagerin/in-muenchen?q="…"`                          | allowed    | `Allow: /jobs/*?q=*`     |
+| `/jobs/projektmanagerin/in-muenchen?q="…"+OR+"…"`                   | allowed    | `Allow: /jobs/*?q=*`     |
+| `/jobs/projektmanagerin/in-muenchen?q="…"&radius=30&ag=age_30&ct=…` | disallowed | `Disallow: /jobs/*?q*&*` |
+| `/jobs/projektmanagerin/in-muenchen?radius=30`                      | disallowed | `Disallow: /jobs/*?*`    |
+| `/jobs/projektmanagerin/in-muenchen?page=2`                         | disallowed | `Disallow: /jobs/*?*`    |
+| `/jobs/projektmanagerin/in-muenchen?q="…"&page=2`                   | disallowed | `Disallow: /jobs/*?q*&*` |
+
+**Stepstone permits its result list and permits exactly one query parameter on it, and that parameter may be `q`.** Two
+consequences, both of them this adapter's shape:
+
+1. **Three Criterion_Field cannot be expressed.** `searchRadiusKm`, `employmentType` and `publicationPeriodDays` left
+   `PLATFORM_CAPABILITIES.STEPSTONE.supportedFields`, and the Stepstone Platform_Override that set a 30 km radius is
+   gone. All three widen the result list rather than narrowing it; the Commute_Service rates the work locations
+   afterwards (8.1) and the Relevance_Service judges the fit (15.2).
+2. **No pagination.** Every shape of a second Result_Page is forbidden, which is `STEPSTONE_RESULT_PAGE_LIMIT = 1` and
+   makes `PAGE_LIMIT_REACHED` the ordinary end of a _successful_ Stepstone retrieval (13.13).
+
+Until this was measured the builder sent four parameters, and **every** Stepstone retrieval ended with
+`EXCLUDED_BY_ROBOTS_TXT` having fetched nothing — the gate working correctly on a URL the Job_Tool had no business
+building. A property test in `__tests__/result-list-url.test.ts` now asserts every URL the builder can produce against
+the stored rules, so a parameter added later fails by name instead of reaching a Scrape_Run.
+
+**What was considered and rejected:** putting `q` last, renaming the filter parameters, or encoding them into the path,
+so as to produce a URL the rules do not literally name. All three request exactly what `Disallow: /jobs/*?q*&*` exists
+to prevent. Ordering parameters to evade a rule is circumventing the robots.txt, not obeying it.
+
+**What would legitimately retrieve more, and is still open.** Each distinct `/jobs/<title-slug>/in-<location-slug>` is
+its own permitted path, so one path per title synonym would cover more of the result list than one path with the
+synonyms folded into `q` — roughly seven entry points instead of one for the current Search_Profile. Requirement 13.14
+permits exactly that. It needs one capture to decide, because whether `q` _intersects_ with the path's title slug or
+widens it is not readable from the robots.txt: if `q` narrows the list, the bare path per synonym is strictly better.
 
 ## Terms-of-use review
 
@@ -182,8 +229,10 @@ What has to happen before the Job_Tool performs its first real retrieval of Step
 2. record the date of that reading in this table as `YYYY-MM-DD`, together with who read it and which document version;
 3. re-do it whenever the adapter's retrieval scope changes, and on every fixture re-capture.
 
-This document is not legal advice. The technical constraints — robots.txt, 2 seconds, 10 pages, no sign-in, no Captcha —
-reduce the risk; they do not replace the review.
+This document is not legal advice. The technical constraints — robots.txt, 2 seconds, one page, no sign-in, no Captcha —
+reduce the risk; they do not replace the review. Note what the robots.txt section above does and does not establish:
+that the Job_Tool now requests only URLs this Platform's robots.txt permits is a _measured_ fact, and robots.txt
+compliance is necessary but not sufficient — the terms of use are a separate document and are still unread.
 
 ## Provisional parameters
 

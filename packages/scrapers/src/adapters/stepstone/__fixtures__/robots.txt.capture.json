@@ -1,0 +1,30 @@
+{
+  "provenance": "CAPTURED",
+  "capturedAt": "2026-10-29",
+  "requestedUrl": "https://www.stepstone.de/robots.txt",
+  "status": 200,
+  "sizeBytes": 3250,
+  "userAgent": "JobTool/0.1 (private use; contact: job.tool@example.com)",
+  "bodyHeader": "last updated 06 08 26 JM",
+  "crawlDelaySeconds": null,
+  "matchedGroup": "*",
+  "notes": [
+    "The group that applies is `User-agent: *`. The Job_Tool identifies as `JobTool/0.1`, whose robots-parser token is `jobtool`, which matches neither the `Jobsearch1.5` group nor any other named group of this body.",
+    "This copy decides the URL test of `__tests__/result-list-url.test.ts` and nothing else. A real Scrape_Run is gated by the live robots.txt that `RobotsCache` fetches once per Platform (14.1), so a rule change takes effect immediately regardless of this file.",
+    "What goes stale here is only the test's oracle. The `@live` smoke test of this Platform is what notices; re-capture with the same command and review the diff."
+  ],
+  "decisionTable": {
+    "/jobs/projektmanagerin/in-muenchen": "ALLOWED",
+    "/jobs/projektmanagerin/in-muenchen?q=%22Projektmanagerin%22": "ALLOWED",
+    "/jobs/projektmanagerin/in-muenchen?q=%22a%22+OR+%22b%22": "ALLOWED",
+    "/jobs/projektmanagerin/in-muenchen?q=%22a%22&radius=30&ag=age_30&ct=permanent": "DISALLOWED",
+    "/jobs/projektmanagerin/in-muenchen?radius=30": "DISALLOWED",
+    "/jobs/projektmanagerin/in-muenchen?page=2": "DISALLOWED",
+    "/jobs/projektmanagerin/in-muenchen?q=%22a%22&page=2": "DISALLOWED"
+  },
+  "decidingLines": [
+    "Disallow: /jobs/*?*",
+    "Allow: /jobs/*?q=*",
+    "Disallow: /jobs/*?q*&*"
+  ]
+}

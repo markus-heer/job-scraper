@@ -185,6 +185,15 @@ function recordingPage(page: AdapterPage, loads: string[]): AdapterPage {
       return page.load(url);
     },
     html: () => page.html(),
+    // Recorded as a request of its own, which is what 13.12 makes it. With `pageBudget: 1` the
+    // adapter reports `PAGE_LIMIT_REACHED` before operating the control, so this smoke test still
+    // makes exactly one real request — and if that ever changes, the `loads` assertion says so
+    // instead of the test quietly sending a second one.
+    loadMore: async (selector) => {
+      loads.push(`loadMore:${selector}`);
+
+      return page.loadMore(selector);
+    },
     close: () => page.close(),
   };
 }

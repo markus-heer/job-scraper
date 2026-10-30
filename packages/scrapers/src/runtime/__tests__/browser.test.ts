@@ -305,7 +305,7 @@ describe('AdapterPage over Playwright', () => {
     await browser.close();
   });
 
-  it('exposes loading, reading and closing only, so no form is ever filled (7.5, 7.6)', async () => {
+  it('exposes loading, reading, one pagination step and closing only (7.5, 7.6, 13.12)', async () => {
     const { browser, context } = await openStepstoneContext();
     const page = await context.openPage();
     const surface = [
@@ -313,7 +313,12 @@ describe('AdapterPage over Playwright', () => {
       ...Object.getOwnPropertyNames(page),
     ].filter((name) => name !== 'constructor');
 
-    expect(surface.sort()).toEqual(['close', 'html', 'load']);
+    // This assertion is where the 7.5 and 7.6 guarantees live, so what it permits matters. Since
+    // 13.12 it permits `loadMore`, which reveals a further block of a result list the adapter is
+    // already reading. It still permits **no** `click`, `fill`, `type`, `press` or `evaluate`: there
+    // is no member an adapter could aim at a sign-in form, a consent dialog or a Captcha. A sign-in
+    // wall and a bot check are ended where they are detected (7.2, 7.6, 7.8), never clicked through.
+    expect(surface.sort()).toEqual(['close', 'html', 'load', 'loadMore']);
 
     await browser.close();
   });

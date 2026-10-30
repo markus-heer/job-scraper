@@ -1,0 +1,52 @@
+{
+  "case": "load-more-block-2",
+  "provenance": "HAND_AUTHORED",
+  "description": "second block of the load-more walk of 13.12, cumulative: the two cards of block 1 plus two more, with the `data-test=\"load-more\"` control still present. This is what the document looks like after one step of the control, which is why an adapter replaces its posting list from each reading rather than appending to it.",
+  "pageNumber": 2,
+  "response": {
+    "status": 200,
+    "headers": {}
+  },
+  "outcome": "POSTINGS",
+  "platformStatus": "COMPLETED",
+  "hasNextPage": true,
+  "readablePostingCount": 4,
+  "postings": [
+    {
+      "postingId": "1020401000001",
+      "title": "Projektmanagerin Pharma (m/w/d)",
+      "employer": "Alpha Pharma GmbH",
+      "workLocation": "München",
+      "publishedAtText": "2T",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/projektmanagerin-alpha-JV_IC2622109_KO0,22.htm?jl=1020401000001",
+      "descriptionText": null
+    },
+    {
+      "postingId": "1020401000002",
+      "title": "Projektleiterin Entwicklung (m/w/d)",
+      "employer": "Beta Life Science AG",
+      "workLocation": "Garching",
+      "publishedAtText": "5T",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/projektleiterin-beta-JV_IC2622109_KO0,20.htm?jl=1020401000002",
+      "descriptionText": null
+    },
+    {
+      "postingId": "1020401000003",
+      "title": "Projektmanager Anlagenbau (m/w/d)",
+      "employer": "Gamma Technik SE",
+      "workLocation": "Augsburg",
+      "publishedAtText": "9T",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/projektmanager-gamma-JV_IC2622109_KO0,20.htm?jl=1020401000003",
+      "descriptionText": null
+    },
+    {
+      "postingId": "1020401000004",
+      "title": "Project Lead Biotech (m/w/d)",
+      "employer": "Delta Biotech GmbH",
+      "workLocation": "Martinsried",
+      "publishedAtText": "14T",
+      "sourceUrl": "https://www.glassdoor.de/job-listing/project-lead-delta-JV_IC2622109_KO0,18.htm?jl=1020401000004",
+      "descriptionText": null
+    }
+  ]
+}

@@ -43,16 +43,18 @@ export const PLATFORM_CAPABILITIES = {
     ],
     mandatoryFields: ['jobTitle', 'searchLocation'],
   }),
+  // `searchRadiusKm`, `employmentType` and `publicationPeriodDays` are deliberately absent although
+  // Stepstone's search form offers all three. Its robots.txt permits the result list path with
+  // **exactly one** query parameter — `Allow: /jobs/*?q=*` against `Disallow: /jobs/*?*` and
+  // `Disallow: /jobs/*?q*&*` — so a URL stating a second one is a URL the Job_Tool may not request
+  // (14.2). Measured on 2026-10-29; the full decision table is in
+  // `packages/scrapers/src/adapters/stepstone/result-list-url.ts`. A Criterion_Field that is declared
+  // but never reaches the query would make the read-only criteria view of 4.11 claim a filter the
+  // retrieval did not apply, so the declaration follows the URL builder. Same shape, same reason as
+  // the `INDEED` entry above.
   STEPSTONE: definePlatformCapability({
     platform: 'STEPSTONE',
-    supportedFields: [
-      'jobTitle',
-      'titleSynonyms',
-      'searchLocation',
-      'searchRadiusKm',
-      'employmentType',
-      'publicationPeriodDays',
-    ],
+    supportedFields: ['jobTitle', 'titleSynonyms', 'searchLocation'],
     mandatoryFields: ['jobTitle', 'searchLocation'],
   }),
 } as const satisfies { readonly [P in Platform]: PlatformCapability };
