@@ -66,7 +66,7 @@ import {
   resultListCompleteEvent,
 } from './messages.js';
 import { readStepstoneResultPage, type ResultPageOutcome } from './parse-result-list.js';
-import { STEPSTONE_RESULT_PAGE_LIMIT, stepstoneResultListUrl } from './result-list-url.js';
+import { stepstoneResultListUrl } from './result-list-url.js';
 
 /** The Platform this adapter serves. Named once, so no string literal is repeated below. */
 const PLATFORM = 'STEPSTONE';
@@ -127,11 +127,10 @@ export class StepstoneAdapter implements PlatformAdapterFor<typeof PLATFORM> {
   /** What Stepstone can express in its result list query (4.2). */
   readonly capability: PlatformCapabilityMap[typeof PLATFORM] = PLATFORM_CAPABILITIES[PLATFORM];
 
-  /**
-   * One Result_Page, because no pagination shape of this Platform has an address its robots.txt
-   * permits (13.13). See {@link STEPSTONE_RESULT_PAGE_LIMIT} for the measured decision table.
-   */
-  readonly pageLimit = STEPSTONE_RESULT_PAGE_LIMIT;
+  // No `pageLimit`: this Platform paginates through its `page` parameter and the retrieval is
+  // bounded only by the Page_Safety_Limit of 13.10. The robots.txt of stepstone.de does forbid every
+  // pagination shape, which is evaluated and reported per Scrape_Run (14.12) but does not gate under
+  // the configured Robots_Policy of 14.10; `./result-list-url.ts` carries that decision in full.
 
   /** The result list entry point of one page (14.1, 14.7). See `./result-list-url.ts`. */
   readonly resultListUrl = stepstoneResultListUrl;
@@ -146,7 +145,7 @@ export class StepstoneAdapter implements PlatformAdapterFor<typeof PLATFORM> {
    */
   async fetch(context: AdapterContext): Promise<AdapterResult> {
     const postings: RawJobPosting[] = [];
-    const budget = effectivePageBudget(context.pageBudget, this.pageLimit);
+    const budget = effectivePageBudget(context.pageBudget);
     let pagesFetched = 0;
 
     /** One {@link AdapterResult} from the state collected so far. */

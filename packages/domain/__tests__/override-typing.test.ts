@@ -81,11 +81,16 @@ export type GlassdoorOverrideKeysAreTheSupportedFields = Expect<
   >
 >;
 
-/** Three fields: this Platform's robots.txt permits exactly one query parameter (14.2). */
+/** All six fields this Platform's search form offers; see the comment on its capability entry. */
 export type StepstoneOverrideKeysAreTheSupportedFields = Expect<
   Equals<
     keyof PlatformOverrideFor<PlatformCapabilityMap['STEPSTONE']>,
-    'jobTitle' | 'titleSynonyms' | 'searchLocation'
+    | 'jobTitle'
+    | 'titleSynonyms'
+    | 'searchLocation'
+    | 'searchRadiusKm'
+    | 'employmentType'
+    | 'publicationPeriodDays'
   >
 >;
 

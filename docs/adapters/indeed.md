@@ -33,22 +33,22 @@ Log_View. Recovery is detected by running the opt-in live smoke suite, not by pa
 
 ## At a glance
 
-| Item                                   | Value                                                                      |
-| -------------------------------------- | -------------------------------------------------------------------------- |
-| Platform                               | `INDEED`                                                                   |
-| Activation in the source code          | **deactivated** (`PLATFORM_ACTIVATION.INDEED` is `false`), since task 25.2 |
-| Origin                                 | `https://de.indeed.com`                                                    |
-| Result list path shape                 | `/jobs` with every criterion in the query string                           |
-| Maximum pages per Scrape_Run           | **1** (`INDEED_RESULT_PAGE_LIMIT`), below the 10 of `RESULT_PAGE_BUDGET`   |
-| Search radius                          | none; `Disallow: /*radius=` forbids a URL that states one                  |
-| Minimum gap between requests           | 2 s (`MIN_REQUEST_GAP_MS`); no `Crawl-delay` is stated for this user agent |
-| Attempts per Result_Page               | at most 3 (`MAX_REQUEST_ATTEMPTS`)                                         |
-| Time limit per Result_Page             | 30 s (`RESULT_PAGE_TIMEOUT_MS`)                                            |
-| Sign-in                                | never; no credentials are supplied and no storage state is reused          |
-| Last terms-of-use review               | not yet performed — see [Terms-of-use review](#terms-of-use-review)        |
-| Last robots.txt review                 | 2026-10-29, result list permitted, `radius=` and `&start=` forbidden       |
-| Last capture against the live Platform | 2026-10-29, **HTTP 403** with a Cloudflare security check, no Result_Page  |
-| Job_Posting this Platform delivers     | none, for as long as the Platform answers that challenge                   |
+| Item                                   | Value                                                                                    |
+| -------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Platform                               | `INDEED`                                                                                 |
+| Activation in the source code          | **deactivated** (`PLATFORM_ACTIVATION.INDEED` is `false`), since task 25.2               |
+| Origin                                 | `https://de.indeed.com`                                                                  |
+| Result list path shape                 | `/jobs` with every criterion in the query string                                         |
+| Maximum pages per Scrape_Run           | 100 (`RESULT_PAGE_BUDGET`); the robots-derived cap of 1 is no longer applied — see below |
+| Search radius                          | none; `Disallow: /*radius=` forbids a URL that states one                                |
+| Minimum gap between requests           | 2 s (`MIN_REQUEST_GAP_MS`); no `Crawl-delay` is stated for this user agent               |
+| Attempts per Result_Page               | at most 3 (`MAX_REQUEST_ATTEMPTS`)                                                       |
+| Time limit per Result_Page             | 30 s (`RESULT_PAGE_TIMEOUT_MS`)                                                          |
+| Sign-in                                | never; no credentials are supplied and no storage state is reused                        |
+| Last terms-of-use review               | not yet performed — see [Terms-of-use review](#terms-of-use-review)                      |
+| Last robots.txt review                 | 2026-10-29, result list permitted, `radius=` and `&start=` forbidden                     |
+| Last capture against the live Platform | 2026-10-29, **HTTP 403** with a Cloudflare security check, no Result_Page                |
+| Job_Posting this Platform delivers     | none, for as long as the Platform answers that challenge                                 |
 
 ## Source URL of the retrieved result list
 
@@ -152,6 +152,12 @@ the Job_Tool may request.
 - **No parallel requests to Indeed.** One page request per Platform at a time.
 
 ## Maximum pages per Scrape_Run
+
+> **Stale below this line.** The one-Result_Page cap described in this section is no longer applied: `ROBOTS_POLICY` is
+> `ignore` (14.10), so the adapter declares no `pageLimit` and the retrieval is bounded by the Page_Safety_Limit of 100.
+> The robots.txt reasoning itself is unchanged and still worth reading — `Disallow: /*&start=` does forbid this
+> Platform's only pagination parameter, and that prohibition is reported once per Scrape_Run (14.12). It is moot in
+> practice: this Platform is deactivated because it answers the honest user agent with HTTP 403 and a Cloudflare check.
 
 **One Result_Page per Scrape_Run** (`INDEED_RESULT_PAGE_LIMIT` is 1). That is not a politeness margin below the ten of
 13.3 but the only number the Platform's robots.txt leaves: `start` is Indeed's sole pagination parameter and

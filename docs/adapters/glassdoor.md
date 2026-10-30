@@ -156,9 +156,9 @@ response and every relative link in it are resolved against.
 ## Maximum pages per Scrape_Run
 
 **1 Result_Page per Scrape_Run**, below the 10 of Requirement 13.3. The adapter reads `context.pageBudget`, truncates it
-to an integer and clamps it into `[0, min(RESULT_PAGE_BUDGET, GLASSDOOR_RESULT_PAGE_LIMIT)]`, so neither the production
-budget of 13.3 nor a larger one raises this Platform's own cap of 1. A test may still shrink the budget further; it
-cannot raise it. Production passes `RESULT_PAGE_BUDGET` and gets one page.
+to an integer and clamps it into `[0, RESULT_PAGE_BUDGET]`, so neither the production budget of 13.3 nor a larger one
+raises this Platform's own cap of 1. A test may still shrink the budget further; it cannot raise it. Production passes
+`RESULT_PAGE_BUDGET` and gets one page.
 
 The cap is this Platform's and the reason is below in
 [Glassdoor ignores the `page` parameter](#glassdoor-ignores-the-page-parameter-and-what-that-costs): the second page
@@ -193,7 +193,11 @@ the `load-more` control keeps claiming a further page. Correctness held througho
 the ten page requests of a Glassdoor retrieval were spent on results already read**, each one still paying the 2-second
 gap.
 
-**The mitigation is in force since task 25.2.** `GLASSDOOR_RESULT_PAGE_LIMIT` in
+> **Superseded.** The one-page cap described below was replaced by reading the `load-more` control (13.12,
+> `GLASSDOOR_LOAD_MORE_SELECTOR`), so this Platform's result list is now walked to its end. The capture and the
+> reasoning are kept because they are what established that the `page` parameter is ignored by this Platform.
+
+**The mitigation was in force between tasks 25.2 and 13.12.** `GLASSDOOR_RESULT_PAGE_LIMIT` in
 `packages/scrapers/src/adapters/glassdoor/result-list-url.ts` is 1, and `effectivePageBudget` in the adapter caps the
 walk at it however large a budget the Scraper_Service hands in. A Glassdoor retrieval now sends exactly one page request
 per Scrape_Run and reads exactly the block the Platform actually serves. `PAGE_LIMIT_REACHED` is therefore the ordinary

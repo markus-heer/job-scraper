@@ -3,7 +3,7 @@
  *
  * Three nested lifetimes, each with exactly one owner:
  *
- * - one headless Chromium per Scrape_Run ({@link ScrapeRunBrowser}). One browser rather than one per
+ * - one visible Chromium window per Scrape_Run ({@link ScrapeRunBrowser}, 14.13). One browser rather than one per
  *   Platform, because a `BrowserContext` already isolates cookies and storage, so a second process
  *   would cost memory without buying isolation;
  * - one `BrowserContext` per Platform ({@link PlatformBrowserContext}), created with a fresh storage
@@ -127,6 +127,13 @@ export interface ScrapeRunBrowserOptions {
   readonly pageTimeoutMs?: number;
   /** What launches the browser. Defaults to Playwright's Chromium; the tests inject a double. */
   readonly launcher?: RuntimeBrowserType;
+  /**
+   * Whether to launch without a window. Defaults to `false`, which is the visible window of 14.13.
+   *
+   * Exists for the fixture capture and for a test that does not want a window popping up, not as a
+   * production switch: a Scrape_Run the user started shows itself.
+   */
+  readonly headless?: boolean;
 }
 
 /** Arguments of one {@link PlatformBrowserContext}. */
@@ -186,7 +193,12 @@ export class ScrapeRunBrowser {
   }
 
   /**
-   * Launches the headless Chromium of one Scrape_Run.
+   * Launches the Chromium of one Scrape_Run as a visible window (14.13).
+   *
+   * Visible rather than headless because the single user starts every Scrape_Run by hand at this
+   * machine: 14.13 asks that they can watch the retrieval and end it by closing the window. The
+   * value is settable through {@link ScrapeRunBrowserOptions.headless} so a test can keep its own
+   * runs quiet, and it defaults to visible so nothing has to remember to ask for it.
    *
    * @throws The abort reason of `options.signal` when the Scrape_Run is already cancelled. A browser
    *   that was launched in the meantime is closed again before the rejection, so a cancellation
@@ -197,7 +209,7 @@ export class ScrapeRunBrowser {
 
     const launcher = options.launcher ?? (await defaultBrowserLauncher());
     const pageTimeoutMs = options.pageTimeoutMs ?? RESULT_PAGE_TIMEOUT_MS;
-    const browser = await launcher.launch({ headless: true });
+    const browser = await launcher.launch({ headless: options.headless ?? false });
     const runBrowser = new ScrapeRunBrowser(browser, options, pageTimeoutMs);
 
     if (options.signal.aborted) {

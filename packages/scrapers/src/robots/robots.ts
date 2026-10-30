@@ -52,6 +52,18 @@ function isAbsentStatus(status: number): boolean {
 /** Whether the robots.txt of a Platform could be evaluated at all. */
 export type RobotsStatus = 'EVALUATED' | 'UNAVAILABLE';
 
+/**
+ * The two Platform_Status a robots.txt evaluation can produce (14.2, 14.3).
+ *
+ * Narrower than `PlatformStatus` on purpose: a caller deciding what to do about a robots.txt
+ * outcome — and under the `ignore` Robots_Policy of 14.11 there is such a caller — needs the two
+ * cases to be exhaustive, which they are not if the type is the full list of 14.
+ */
+export type RobotsPlatformStatus = Extract<
+  PlatformStatus,
+  'EXCLUDED_BY_ROBOTS_TXT' | 'ROBOTS_TXT_UNAVAILABLE'
+>;
+
 /** The evaluation of one Platform's robots.txt against the paths a Platform_Adapter intends to visit. */
 export interface RobotsDecision {
   /** The intended paths the robots.txt permits, in the order they were passed in. */
@@ -220,7 +232,7 @@ export class RobotsCache {
  *   `EXCLUDED_BY_ROBOTS_TXT` when it forbids at least one intended path (14.2), and `null` when the
  *   retrieval may proceed — in which case the Platform_Status follows from the retrieval itself.
  */
-export function robotsPlatformStatus(decision: RobotsDecision): PlatformStatus | null {
+export function robotsPlatformStatus(decision: RobotsDecision): RobotsPlatformStatus | null {
   if (decision.status === 'UNAVAILABLE') {
     return 'ROBOTS_TXT_UNAVAILABLE';
   }

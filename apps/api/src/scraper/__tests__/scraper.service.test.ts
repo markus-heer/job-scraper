@@ -31,6 +31,8 @@ import {
 } from '@job-scraper/scrapers';
 import { beforeEach, describe, expect, it } from 'vitest';
 
+import { ROBOTS_IGNORED_LOG_CODE } from '../../common/error-mapping';
+import type { RobotsPolicy } from '../../config/env.schema';
 import type { PlatformConfigurationInputs } from '../../platform-config/platform-config.resolve';
 import { PlatformConfigurationService } from '../../platform-config/platform-config.service';
 import {
@@ -110,6 +112,8 @@ const createHarness = (options: {
   readonly registry: AdapterRegistry;
   readonly configuration?: Partial<PlatformConfigurationInputs>;
   readonly seed?: readonly SeedPosting[];
+  /** The Robots_Policy of 14.10. Defaults to `respect`, the conservative value. */
+  readonly robotsPolicy?: RobotsPolicy;
 }): Harness => {
   const postings = createPostingStore(options.seed ?? []);
   const log = createLogRecorder();
@@ -120,7 +124,7 @@ const createHarness = (options: {
     new PostingRepository(postings.store),
     results.store,
     log.log,
-    { userAgentContact: 'kontakt@example.com' },
+    { userAgentContact: 'kontakt@example.com', robotsPolicy: options.robotsPolicy ?? 'respect' },
     options.registry,
     runtime.runtime,
   );
@@ -316,6 +320,53 @@ describe('ScraperService', () => {
       expect(harness.runtime.pageSources).toHaveLength(0);
       expect(harness.postings.rows.size).toBe(0);
       expect(harness.log.withCode('robots.disallowed')).toHaveLength(1);
+    });
+
+    it('retrieves a Platform its robots.txt forbids when the policy is ignore (14.11, 14.12)', async () => {
+      const stepstone = reporting('STEPSTONE', [raw()]);
+      const harness = createHarness({
+        registry: { STEPSTONE: stepstone },
+        robotsPolicy: 'ignore',
+      });
+
+      harness.runtime.setRobots(
+        'STEPSTONE',
+        permissiveRobots({ disallowedPaths: ['/jobs'], status: 'EVALUATED' }),
+      );
+
+      const execution = await execute(harness);
+
+      // 14.11: the prohibition does not gate, so the Platform is retrieved and its Job_Posting are
+      // stored. `EXCLUDED_BY_ROBOTS_TXT` is not reported for this reason any more.
+      expect(resultOf(execution.platforms, 'STEPSTONE').platformStatus).toBe('COMPLETED');
+      expect(stepstone.contexts).toHaveLength(1);
+      expect(harness.postings.rows.size).toBe(1);
+      expect(harness.log.withCode('robots.disallowed')).toHaveLength(0);
+
+      // 14.12: and the user reads that it happened. One warning per Platform, naming the path, so
+      // the decision is visible in the Log_View rather than buried in a configuration file.
+      const warnings = harness.log.withCode(ROBOTS_IGNORED_LOG_CODE);
+
+      expect(warnings).toHaveLength(1);
+      expect(warnings[0]?.level).toBe('WARN');
+      expect(warnings[0]?.messageDe).toContain('/jobs');
+      expect(warnings[0]?.messageDe).toContain('ROBOTS_POLICY');
+    });
+
+    it('retrieves a Platform whose robots.txt was unevaluable when the policy is ignore', async () => {
+      const stepstone = reporting('STEPSTONE', [raw()]);
+      const harness = createHarness({
+        registry: { STEPSTONE: stepstone },
+        robotsPolicy: 'ignore',
+      });
+
+      harness.runtime.setRobots('STEPSTONE', permissiveRobots({ status: 'UNAVAILABLE' }));
+
+      const execution = await execute(harness);
+
+      expect(resultOf(execution.platforms, 'STEPSTONE').platformStatus).toBe('COMPLETED');
+      expect(harness.log.withCode('robots.unavailable')).toHaveLength(0);
+      expect(harness.log.withCode(ROBOTS_IGNORED_LOG_CODE)).toHaveLength(1);
     });
 
     it('reports a rejected single upsert and continues with the remaining Job_Posting', async () => {

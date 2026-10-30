@@ -108,7 +108,7 @@ import {
   resultListCompleteEvent,
 } from './messages.js';
 import { readIndeedResultPage, type ResultPageOutcome } from './parse-result-list.js';
-import { INDEED_RESULT_PAGE_LIMIT, indeedResultListUrl } from './result-list-url.js';
+import { indeedResultListUrl } from './result-list-url.js';
 
 /** The Platform this adapter serves. Named once, so no string literal is repeated below. */
 const PLATFORM = 'INDEED';
@@ -165,11 +165,11 @@ export class IndeedAdapter implements PlatformAdapterFor<typeof PLATFORM> {
   /** What Indeed can express in its result list query (4.2). */
   readonly capability: PlatformCapabilityMap[typeof PLATFORM] = PLATFORM_CAPABILITIES[PLATFORM];
 
-  /**
-   * One Result_Page, because `Disallow: /*&start=` forbids this Platform's only pagination
-   * parameter, so the second Result_Page has no address the Job_Tool may request (13.13, 14.2).
-   */
-  readonly pageLimit = INDEED_RESULT_PAGE_LIMIT;
+  // No `pageLimit`. `Disallow: /*&start=` forbids this Platform's only pagination parameter, which
+  // the robots.txt evaluation reports per Scrape_Run (14.12) but which does not gate under the
+  // configured Robots_Policy of 14.10. Moot in practice: `PLATFORM_ACTIVATION.INDEED` is `false`
+  // because de.indeed.com answers the honest user agent with HTTP 403 and a Cloudflare check — an
+  // access control, not a convention, and this repository does not defeat those.
 
   /** The result list entry point of one page (14.1, 14.7). See `./result-list-url.ts`. */
   readonly resultListUrl = indeedResultListUrl;
@@ -185,7 +185,7 @@ export class IndeedAdapter implements PlatformAdapterFor<typeof PLATFORM> {
    */
   async fetch(context: AdapterContext): Promise<AdapterResult> {
     const postings: RawJobPosting[] = [];
-    const budget = effectivePageBudget(context.pageBudget, this.pageLimit);
+    const budget = effectivePageBudget(context.pageBudget);
     let pagesFetched = 0;
 
     /** One {@link AdapterResult} from the state collected so far. */

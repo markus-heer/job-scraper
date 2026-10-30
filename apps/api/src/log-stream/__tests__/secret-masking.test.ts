@@ -51,6 +51,7 @@ const envConfig: EnvConfig = {
   relevanceMaxPerRun: 50,
   enrichmentGraceMinutes: 10,
   userAgentContact: 'kontakt@example.org',
+  robotsPolicy: 'respect',
   apiPort: 4000,
   webPort: 5173,
   scraperFixtureMode: false,

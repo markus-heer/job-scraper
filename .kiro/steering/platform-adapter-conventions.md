@@ -163,22 +163,16 @@ Platform_Override for an unsupported Criterion_Field a compile error (4.5).
 | `GLASSDOOR` | `jobTitle`, `titleSynonyms`, `searchLocation`, `searchRadiusKm`                                     | `jobTitle`, `searchLocation`|
 | `JOBVECTOR` | `jobTitle`, `titleSynonyms`, `industry`, `searchLocation`, `searchRadiusKm`                         | `jobTitle`                  |
 | `INDEED`    | `jobTitle`, `titleSynonyms`, `searchLocation`, `employmentType`, `publicationPeriodDays`            | `jobTitle`, `searchLocation`|
-| `STEPSTONE` | `jobTitle`, `titleSynonyms`, `searchLocation`                                                        | `jobTitle`, `searchLocation`|
+| `STEPSTONE` | `jobTitle`, `titleSynonyms`, `searchLocation`, `searchRadiusKm`, `employmentType`, `publicationPeriodDays` | `jobTitle`, `searchLocation`|
 
-`INDEED` and `STEPSTONE` are the two entries whose shape is decided by a robots.txt rather than by
-what the Platform's search form offers.
+`INDEED` is the one entry whose shape is decided by something other than what the Platform's search
+form offers: `searchRadiusKm` is absent because that Platform has no radius the adapter can express
+without also sending the parameter its own URL builder documents as unused. `GLASSDOOR` and
+`JOBVECTOR` declare what their forms offer.
 
-`STEPSTONE` is the narrower of the two and the more surprising: its search form offers a radius, a
-contract type and a posting-age filter, and the declaration carries none of them. The
-`User-agent: *` group of `https://www.stepstone.de/robots.txt` permits the result list path with
-**exactly one** query parameter — `Allow: /jobs/*?q=*` stands against `Disallow: /jobs/*?*` and
-`Disallow: /jobs/*?q*&*` — so a URL stating a second parameter is one the Job_Tool may not request
-(14.2), and rule 2 below then forbids declaring the field. Until that was measured the builder sent
-four parameters and **every** Stepstone retrieval ended with `EXCLUDED_BY_ROBOTS_TXT` having fetched
-nothing. The same `Disallow` lines are why that adapter reads exactly one Result_Page
-(`STEPSTONE_RESULT_PAGE_LIMIT`). The decision table is in
-`packages/scrapers/src/adapters/stepstone/result-list-url.ts` and a property test asserts every
-emitted URL against the stored `__fixtures__/robots.txt`. Indeed does have a radius selector, but the `User-agent: *` group of
+**A robots.txt prohibition is not a reason to drop a Criterion_Field from a declaration.** Stepstone
+briefly declared three fields instead of six on that basis; see the robots.txt section below for why
+that moved into one configuration value (14.10) instead. Indeed does have a radius selector, but the `User-agent: *` group of
 `https://de.indeed.com/robots.txt` carries `Disallow: /*radius=`, so a URL stating a radius is one the
 Job_Tool may not request (14.2) — and rule 2 below then forbids declaring the field. The sibling line
 `Disallow: /*&start=` forbids Indeed's only pagination parameter, which is why that adapter reads
@@ -278,34 +272,28 @@ page-limit line and reports Platform_Status `PAGE_LIMIT_REACHED`, which makes th
 Partial_Result (7.7) and is the honest statement that the Job_Tool stopped before the Platform did
 (13.11).
 
-#### A Platform whose pagination has no permitted address (13.13)
+#### A Platform that leaves no usable address for a further Result_Page (13.13)
 
 An adapter declares its own tighter bound as `pageLimit` **on the `PlatformAdapter` interface**, not
 privately. That placement is load-bearing: `intendedPathsOf` in
-`apps/api/src/scraper/scraper.service.ts` resolves every intended path *before* the first request
-for the robots.txt evaluation of 14.1, and 14.2 excludes a Platform if **any** of them is forbidden.
-Enumerating paths the adapter never intends to request would exclude the Platform in full and tell
-the user "durch robots.txt ausgeschlossen" for a decision the Job_Tool had made itself. Two of the
-four declare one, both `1`:
+`apps/api/src/scraper/scraper.service.ts` resolves every intended path *before* the first request for
+the robots.txt evaluation of 14.1, so it needs to know how far the adapter will actually walk.
 
-- `STEPSTONE_RESULT_PAGE_LIMIT` in `packages/scrapers/src/adapters/stepstone/result-list-url.ts`,
-  because `www.stepstone.de/robots.txt` permits the result list path with **exactly one** query
-  parameter — `Allow: /jobs/*?q=*` against `Disallow: /jobs/*?*` and `Disallow: /jobs/*?q*&*` — so
-  no pagination shape of that Platform has a permitted address. Measured 2026-10-29; the stored
-  `__fixtures__/robots.txt` and its sidecar carry the capture and a property test asserts every
-  emitted URL against it.
-- `INDEED_RESULT_PAGE_LIMIT` in `packages/scrapers/src/adapters/indeed/result-list-url.ts`, because
-  `Disallow: /*&start=` forbids that Platform's only pagination parameter.
+**No registered adapter declares one today, and a robots.txt prohibition is not a reason to.** Two
+briefly did — Stepstone, whose robots.txt permits only one query parameter, and Indeed, whose
+robots.txt forbids its only pagination parameter — and both are gone: under the `ROBOTS_POLICY` of
+14.10 that decision belongs to one configuration value, not to a constant in each adapter. See the
+robots.txt section below.
 
-For both, `PAGE_LIMIT_REACHED` is the ordinary end of a *successful* retrieval rather than the
-exception. Such a bound is a named constant with its reason beside it, never a number inside the
-loop, and it is passed to `effectivePageBudget` as the `platformLimit` argument **and** declared as
-`pageLimit` — both, or the service and the adapter disagree about what will be requested.
+What *would* justify a `pageLimit` is a Platform that offers no usable way to address a further
+Result_Page at all — no parameter, no link, no control. Such a bound is a named constant with its
+reason beside it, never a number inside the loop, and it is passed to `effectivePageBudget` as the
+`platformLimit` argument **and** declared as `pageLimit` — both, or the service and the adapter
+disagree about what will be requested. `PAGE_LIMIT_REACHED` is then the ordinary end of a
+*successful* retrieval rather than the exception.
 
-Where a Platform leaves several *permitted entry points* that together cover more of the result list
-than any one of them, 13.14 permits retrieving each within the Page_Safety_Limit. That is the open
-option for Stepstone — one path per title synonym — and it needs a capture to decide; see
-`docs/adapters/stepstone.md`.
+Where a Platform leaves several entry points that together cover more of the result list than any
+one of them, 13.14 permits retrieving each within the Page_Safety_Limit.
 
 #### A Platform that paginates through a control (13.12)
 
@@ -341,7 +329,33 @@ an adapter. An adapter has no way to aim a click at a sign-in form, a consent di
 sign-in wall and a bot check are *ended* where they are detected (7.2, 7.6, 7.8), never clicked
 through, and the surface assertion in `runtime/__tests__/browser.test.ts` is what keeps that true.
 
-### robots.txt and etiquette (14.1 – 14.5)
+### robots.txt and etiquette (14.1 – 14.5, 14.10 – 14.12)
+
+**Read this before concluding anything about what the Job_Tool may request.** The robots.txt of a
+Platform is retrieved and evaluated on every Scrape_Run, and a stated `Crawl-delay` is always
+applied — but whether a prohibition *stops* a retrieval is the `ROBOTS_POLICY` of 14.10, and on this
+machine it is set to `ignore`. The single user starts each Scrape_Run by hand at the keyboard and
+takes the view that a retrieval they trigger themselves is not the autonomous crawler the robots
+exclusion convention addresses.
+
+What follows for an adapter author:
+
+- **Do not add a cap, drop a Criterion_Field or narrow a URL shape because a robots.txt forbids it.**
+  That is what `ROBOTS_POLICY` decides, at run time, in one place. Two adapters briefly carried such
+  caps — `STEPSTONE_RESULT_PAGE_LIMIT` and `INDEED_RESULT_PAGE_LIMIT`, both `1` — and both are gone
+  along with the capability reductions that came with them.
+- **A `pageLimit` on the interface is for a Platform that leaves no *usable* way to address a further
+  Result_Page**, not for one whose robots.txt disallows it. No registered adapter declares one today.
+- **The prohibition is still reported.** `robotsIgnoredLogEntry` writes one German warning per
+  Platform and Scrape_Run naming the forbidden path and the configured value (14.12), so the decision
+  is visible in the Log_View instead of buried in `.env`.
+- **The terms of use of a Platform are a separate document** and are settled by none of this. Each
+  `docs/adapters/*.md` records whether they have been read.
+- **Access controls are not conventions and are not defeated.** A Captcha, a bot check or an HTTP 403
+  ends the retrieval of that Platform (7.6, 7.8). `PLATFORM_ACTIVATION.INDEED` is `false` for exactly
+  that reason, and Jobvector answers 403 as well.
+
+Setting `ROBOTS_POLICY=respect` restores the gate of 14.2 and 14.3 without touching any adapter.
 
 An adapter does not evaluate robots.txt itself; `RobotsCache` in
 `packages/scrapers/src/robots/robots.ts` does, once per Platform, before the first page request, and
@@ -357,9 +371,19 @@ forbids at least one intended path (14.2), and `null` when the retrieval may pro
 `UNAVAILABLE` rather than silently permitting the path. Cancellation of the Scrape_Run rejects
 instead of being reported as a robots.txt fault.
 
+Those two values are what the `ROBOTS_POLICY` of 14.10 acts on, in `ScraperService.evaluateRobots`
+and nowhere else: under `respect` each closes the Platform, under `ignore` each becomes the warning
+of 14.12 and the retrieval continues. The crawl-delay is read from the same decision under both.
+
 The user agent is the unchanged Job_Tool identification of 14.5, built by `buildUserAgent` from the
-contact detail in `USER_AGENT_CONTACT`. It never imitates a browser. No adapter fills a sign-in or
-registration form, stores credentials, or answers a Captcha (7.1, 7.5, 7.6).
+contact detail in `USER_AGENT_CONTACT`. It never imitates a browser — that holds under either
+`ROBOTS_POLICY`, because identifying honestly is what lets a Platform operator see who is asking.
+No adapter fills a sign-in or registration form, stores credentials, or answers a Captcha
+(7.1, 7.5, 7.6).
+
+**The browser runs as a visible window** (14.13): `ScrapeRunBrowser.launch` passes
+`headless: false`, so the user who started the Scrape_Run can watch it and end it by closing the
+window. A test or the fixture capture can pass `headless: true`; production does not.
 
 ### German text belongs to one owner
 

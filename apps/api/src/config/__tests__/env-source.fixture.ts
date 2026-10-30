@@ -22,7 +22,7 @@ export const DATABASE_PASSWORD = 'database-password-must-not-be-printed';
 /** Every credential the environment file carries, for the "nothing leaks" assertions. */
 export const SECRET_VALUES = [ROUTING_KEY, ANTHROPIC_KEY, DATABASE_PASSWORD] as const;
 
-/** All 14 required keys with a usable value. */
+/** All 15 required keys with a usable value. */
 export const VALID_ENV: Readonly<Record<EnvKey, string>> = {
   DATABASE_URL: `postgresql://jobtool:${DATABASE_PASSWORD}@127.0.0.1:55432/jobtool?schema=public`,
   HOME_ADDRESS: 'Hörkherstraße 1d, 80689 München',
@@ -36,6 +36,7 @@ export const VALID_ENV: Readonly<Record<EnvKey, string>> = {
   RELEVANCE_MAX_PER_RUN: '200',
   ENRICHMENT_GRACE_MINUTES: '10',
   USER_AGENT_CONTACT: 'job.tool@example.com',
+  ROBOTS_POLICY: 'respect',
   API_PORT: '4000',
   WEB_PORT: '5173',
 };

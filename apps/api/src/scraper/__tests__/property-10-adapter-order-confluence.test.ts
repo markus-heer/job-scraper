@@ -334,7 +334,7 @@ const runInOrder = async (
     new PostingRepository(postings.store),
     createPlatformResultStore().store,
     createLogRecorder().log,
-    { userAgentContact: 'kontakt@example.com' },
+    { userAgentContact: 'kontakt@example.com', robotsPolicy: 'respect' },
     registryOf(generated.outcomes, createOrderGate(order)),
     createRetrievalRuntime().runtime,
   );

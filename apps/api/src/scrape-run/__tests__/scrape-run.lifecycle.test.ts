@@ -193,7 +193,7 @@ const createHarness = (options: {
       new PostingRepository(postings.store),
       results.store,
       log.log,
-      { userAgentContact: 'kontakt@example.com' },
+      { userAgentContact: 'kontakt@example.com', robotsPolicy: 'respect' },
       options.registry,
       runtime.runtime,
     ),

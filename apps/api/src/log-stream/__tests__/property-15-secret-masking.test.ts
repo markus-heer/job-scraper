@@ -112,6 +112,7 @@ const envConfigArbitrary = fc
     relevanceMaxPerRun: 50,
     enrichmentGraceMinutes: 10,
     userAgentContact: 'kontakt@example.org',
+    robotsPolicy: 'respect',
     apiPort: 4000,
     webPort: 5173,
     // The masking has nothing to do with the fixture switch; it is here because `EnvConfig` is

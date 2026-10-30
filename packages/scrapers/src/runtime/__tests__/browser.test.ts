@@ -55,10 +55,11 @@ async function openStepstoneContext(
 }
 
 describe('ScrapeRunBrowser.launch', () => {
-  it('launches exactly one headless browser per Scrape_Run', async () => {
+  it('launches exactly one visible browser window per Scrape_Run (14.13)', async () => {
     const { browser, recorder } = await openStepstoneContext();
 
-    expect(recorder.launchOptions).toEqual([{ headless: true }]);
+    // 14.13: visible, not headless. The single user starts each Scrape_Run by hand and watches it.
+    expect(recorder.launchOptions).toEqual([{ headless: false }]);
 
     await browser.close();
   });

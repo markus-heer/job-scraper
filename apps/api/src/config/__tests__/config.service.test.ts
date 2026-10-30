@@ -39,6 +39,7 @@ const ENV: EnvConfig = {
   relevanceMaxPerRun: 200,
   enrichmentGraceMinutes: 10,
   userAgentContact: 'job.tool@example.com',
+  robotsPolicy: 'respect',
   apiPort: 4000,
   webPort: 5173,
   // Normal operation: nothing in the configuration service depends on the fixture switch, which is

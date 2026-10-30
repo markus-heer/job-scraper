@@ -908,6 +908,44 @@ export type FailureLogEntry = Omit<LogMessagePayload, 'runId'>;
  * sentence from {@link mapFailure}. Two entries for one observation would make the Log_View read as
  * if the Job_Tool had seen the thing twice.
  */
+/** The stable log code of the Robots_Policy warning of 14.12. */
+export const ROBOTS_IGNORED_LOG_CODE = 'robots.ignoredByPolicy';
+
+/**
+ * The Log_Stream entry for a Platform the Job_Tool retrieves although its robots.txt asks it not to
+ * (14.11, 14.12).
+ *
+ * `WARN` rather than `ERROR`: nothing failed, and the retrieval is doing what the configuration
+ * says. But it is not `INFO` either, because the decision is one the user should notice every time
+ * rather than once in a configuration file they edited months ago.
+ *
+ * The German sentence names the Platform, what the robots.txt said and that the Job_Tool went ahead
+ * anyway. It states the configured value by name so the reader can find the switch — the single
+ * non-technical user is still the audience, and "Einstellung" plus the key is what turns the line
+ * from a mystery into something they can act on.
+ */
+export function robotsIgnoredLogEntry(
+  platform: Platform,
+  status: 'EXCLUDED_BY_ROBOTS_TXT' | 'ROBOTS_TXT_UNAVAILABLE',
+  disallowedPaths: readonly string[],
+): FailureLogEntry {
+  const cause =
+    status === 'EXCLUDED_BY_ROBOTS_TXT'
+      ? `Die robots.txt von ${label(platform)} untersagt den Abruf` +
+        (disallowedPaths[0] === undefined ? '' : ` von ${disallowedPaths[0]}`)
+      : `Die robots.txt von ${label(platform)} konnte nicht geprüft werden`;
+
+  return {
+    level: 'WARN',
+    code: ROBOTS_IGNORED_LOG_CODE,
+    messageDe:
+      `${cause}. Die Plattform wurde trotzdem abgefragt, weil die Einstellung ` +
+      'ROBOTS_POLICY auf "ignore" steht.',
+    platform,
+    ...(disallowedPaths.length === 0 ? {} : { detail: { disallowedPaths: [...disallowedPaths] } }),
+  };
+}
+
 export function failureLogEntry(failure: JobToolFailure): FailureLogEntry {
   const mapping = mapFailure(failure);
   const platform = platformOf(failure);

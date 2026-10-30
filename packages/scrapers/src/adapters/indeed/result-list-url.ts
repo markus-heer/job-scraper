@@ -152,6 +152,19 @@ const RESULT_LIST_PATH = '/jobs';
  * budget of 13.3 and this Platform still reads one page. Raise it only together with a pagination
  * parameter the robots.txt of the Platform actually permits.
  */
+/**
+ * **No longer applied by the adapter.** Kept as the record of what this Platform's robots.txt says,
+ * which the tests below still assert against the stored rules.
+ *
+ * `Disallow: /*&start=` forbids Indeed's only pagination parameter, so under `ROBOTS_POLICY=respect`
+ * this is the bound the retrieval would take. The configured policy is `ignore` (14.10), so the
+ * adapter declares no `pageLimit` and walks to the Page_Safety_Limit instead; the prohibition is
+ * reported once per Scrape_Run as a warning (14.12).
+ *
+ * Moot in practice either way: `PLATFORM_ACTIVATION.INDEED` is `false`, because de.indeed.com
+ * answers the honest user agent with HTTP 403 and a Cloudflare check — an access control rather than
+ * a convention, and this repository does not defeat those.
+ */
 export const INDEED_RESULT_PAGE_LIMIT = 1;
 
 /**

@@ -9,7 +9,7 @@
  *
  * Two classes of failure are distinguished, because the requirements treat them differently:
  *
- * - A key that is missing or empty stops the startup and is reported by name (1.15). All 14 keys
+ * - A key that is missing or empty stops the startup and is reported by name (1.15). All 15 keys
  *   in {@link REQUIRED_ENV_KEYS} are required; there is no silent default for any of them.
  *   `.env.example` documents two keys beyond them: `POSTGRES_PORT`, which docker-compose.yml reads
  *   to bind the host port of the Posting_Store container and which nothing here validates because
@@ -48,12 +48,31 @@ export const REQUIRED_ENV_KEYS = [
   'RELEVANCE_MAX_PER_RUN',
   'ENRICHMENT_GRACE_MINUTES',
   'USER_AGENT_CONTACT',
+  'ROBOTS_POLICY',
   'API_PORT',
   'WEB_PORT',
 ] as const;
 
-/** One of the 14 required environment keys. */
+/** One of the 15 required environment keys. */
 export type EnvKey = (typeof REQUIRED_ENV_KEYS)[number];
+
+/**
+ * The two values of the Robots_Policy (14.10).
+ *
+ * Required rather than defaulted, and spelled out rather than a boolean, because this is the one
+ * configuration value that changes what the Job_Tool is willing to request from a third party. A
+ * missing key stops the start by name, so the value is always something somebody chose.
+ *
+ * `respect` gates a retrieval on the evaluated robots.txt (14.2, 14.3). `ignore` retrieves anyway
+ * and reports the prohibition as a warning instead (14.11, 14.12). **Under both values the
+ * robots.txt is still retrieved and evaluated and a stated `Crawl-delay` is still applied** (14.1,
+ * 14.4) — the policy decides only whether a prohibition stops the retrieval, never whether the
+ * Job_Tool bothers to look or how fast it goes.
+ */
+export const ROBOTS_POLICIES = ['respect', 'ignore'] as const;
+
+/** Whether an evaluated robots.txt prohibition gates a retrieval (14.10). */
+export type RobotsPolicy = (typeof ROBOTS_POLICIES)[number];
 
 /**
  * Keys the API_Service reads but does not require.
@@ -161,6 +180,7 @@ export const envSchemaWithoutCommuteThreshold = z.object({
   RELEVANCE_MAX_PER_RUN: integerInRange(1, 20_000),
   ENRICHMENT_GRACE_MINUTES: integerInRange(1, 120),
   USER_AGENT_CONTACT: z.string().min(1).max(200),
+  ROBOTS_POLICY: z.enum(ROBOTS_POLICIES),
   API_PORT: localPort(),
   WEB_PORT: localPort(),
 });
@@ -208,6 +228,8 @@ export interface EnvConfig {
   readonly relevanceMaxPerRun: number;
   readonly enrichmentGraceMinutes: number;
   readonly userAgentContact: string;
+  /** Whether an evaluated robots.txt prohibition gates a retrieval (14.10). */
+  readonly robotsPolicy: RobotsPolicy;
   readonly apiPort: number;
   readonly webPort: number;
   /**
@@ -331,6 +353,7 @@ export const parseEnvironment = (source: EnvSource): EnvParseResult => {
       relevanceMaxPerRun: base.data.RELEVANCE_MAX_PER_RUN,
       enrichmentGraceMinutes: base.data.ENRICHMENT_GRACE_MINUTES,
       userAgentContact: base.data.USER_AGENT_CONTACT,
+      robotsPolicy: base.data.ROBOTS_POLICY,
       apiPort: base.data.API_PORT,
       webPort: base.data.WEB_PORT,
       scraperFixtureMode: fixtureMode === true,
@@ -360,6 +383,7 @@ export const describeEnvConfig = (
   relevanceMaxPerRun: config.relevanceMaxPerRun,
   enrichmentGraceMinutes: config.enrichmentGraceMinutes,
   userAgentContact: config.userAgentContact,
+  robotsPolicy: config.robotsPolicy,
   apiPort: config.apiPort,
   webPort: config.webPort,
   // Worth reporting precisely because it changes where the data comes from: a bug report from a

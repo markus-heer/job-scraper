@@ -26,7 +26,7 @@
  * wrong *path* would not degrade, which is why the path carries nothing but the two mandatory fields.
  */
 
-import type { EffectiveSearchProfile } from '@job-scraper/domain';
+import type { EffectiveSearchProfile, EmploymentType } from '@job-scraper/domain';
 
 import { criterionValue, requiredCriterionValue } from '../search-criteria.js';
 
@@ -40,11 +40,12 @@ const RESULT_LIST_PATH = '/jobs';
 const LOCATION_PREFIX = 'in-';
 
 /**
- * The Result_Page one Stepstone retrieval reads: **one**, far below the Page_Safety_Limit of 13.10.
+ * What `https://www.stepstone.de/robots.txt` says, and why this builder no longer follows it.
  *
- * `https://www.stepstone.de/robots.txt` permits this result list and permits exactly one query
- * parameter on it. Measured on 2026-10-29 against the live body (HTTP 200, 3250 bytes, header
- * `last updated 06 08 26 JM`, no `Crawl-delay`) with the same `robots-parser` the Job_Tool uses:
+ * Measured on 2026-10-29 against the live body (HTTP 200, 3250 bytes, header
+ * `last updated 06 08 26 JM`, no `Crawl-delay`) with the same `robots-parser` the Job_Tool uses. The
+ * stored copy is `__fixtures__/robots.txt` with a `.capture.json` sidecar. Three lines decide what
+ * that file permits:
  *
  * ```text
  * Disallow: /jobs/*?*        forbids ?page=2 and ?radius=30
@@ -52,7 +53,7 @@ const LOCATION_PREFIX = 'in-';
  * Disallow: /jobs/*?q*&*     forbids ?q=…&page=2 and every further parameter beside q
  * ```
  *
- * | Intended path                                            | Decision   |
+ * | Intended path                                            | robots.txt |
  * | -------------------------------------------------------- | ---------- |
  * | `/jobs/projektmanagerin/in-muenchen`                     | allowed    |
  * | `/jobs/projektmanagerin/in-muenchen?q="…"`               | allowed    |
@@ -60,43 +61,86 @@ const LOCATION_PREFIX = 'in-';
  * | `/jobs/projektmanagerin/in-muenchen?page=2`              | disallowed |
  * | `/jobs/projektmanagerin/in-muenchen?q="…"&page=2`        | disallowed |
  *
- * So **no pagination shape of this Platform has a permitted address**, and this cap is 13.13: the
- * retrieval ends after the last permitted Result_Page rather than requesting one the robots.txt
- * forbids, and rather than being excluded in full for paths it never intended to request.
+ * So by that file, Stepstone permits its result list with **exactly one** query parameter and
+ * forbids every pagination shape. This builder briefly obeyed that: one parameter, one Result_Page,
+ * and three Criterion_Field removed from the capability declaration.
  *
- * Until this constant existed the builder emitted four parameters — `q`, `radius`, `ag` and `ct` —
- * and every Stepstone retrieval therefore ended with Platform_Status `EXCLUDED_BY_ROBOTS_TXT` having
- * fetched nothing. That told the single non-technical user "Stepstone excludes this tool" for a URL
- * the Job_Tool had chosen itself. The parameters are gone, with the consequence stated rather than
- * hidden: `searchRadiusKm`, `employmentType` and `publicationPeriodDays` left
- * `PLATFORM_CAPABILITIES.STEPSTONE.supportedFields` in the same change, because rule 2 of the
- * capability conventions requires every declared Criterion_Field to actually reach the URL. All
- * three widen the result list rather than narrowing it; the Commute_Service rates the work locations
- * afterwards (8.1) and the Relevance_Service judges the fit (15.2).
+ * **It does not any more, and that is a configured decision rather than an oversight.** The
+ * Robots_Policy of 14.10 is set to `ignore` on this machine, because the single user starts each
+ * Scrape_Run by hand at the keyboard and takes the view that a retrieval they trigger themselves is
+ * not the autonomous crawler the robots exclusion convention addresses. The evaluation above still
+ * runs on every Scrape_Run and is reported as a warning per Platform in the Log_View (14.12), so the
+ * decision is visible rather than silent, and a stated `Crawl-delay` is still applied (14.4).
  *
- * **What was considered and rejected:** putting `q` last, renaming the filter parameters, or encoding
- * them into the path, so as to produce a URL the rules do not literally name. All three request
- * exactly what `Disallow: /jobs/*?q*&*` exists to prevent. Ordering parameters to evade a rule is
- * circumventing the robots.txt, not obeying it — the same reasoning the Indeed builder records for
- * `Disallow: /*&start=`.
+ * Two things that follow, and one that does not:
  *
- * **What would legitimately retrieve more:** several permitted entry points. Each distinct
- * `/jobs/<title-slug>/in-<location-slug>` is its own allowed path, so one path per title synonym
- * covers more of the result list than one path with the synonyms folded into `q` — that is the option
- * 13.14 opens and it needs a capture to decide, see `docs/adapters/stepstone.md`.
+ * - **The full filter set reaches the query again** — `q`, `radius`, `ag` and `ct` — so the retrieved
+ *   list is the one the Search_Profile asks for instead of a nationwide, unfiltered one.
+ * - **Pagination works**, bounded only by the Page_Safety_Limit of 13.10, so the result list is read
+ *   to its end (13.3).
+ * - **The terms of use are a separate document and are not settled by any of this.**
+ *   `docs/adapters/stepstone.md` records that they are still unread.
  *
- * Requirements: 13.3, 13.10, 13.13, 14.1, 14.2.
+ * Setting `ROBOTS_POLICY=respect` makes the gate of 14.2 exclude this Platform again, which is the
+ * one-line way back. The parameter names below are what that change would narrow, never the
+ * capability declaration.
+ *
+ * Requirements: 13.3, 13.10, 14.1, 14.4, 14.10, 14.11, 14.12.
  */
-export const STEPSTONE_RESULT_PAGE_LIMIT = 1;
+export const STEPSTONE_ROBOTS_NOTE =
+  'Evaluated and reported per Scrape_Run; gating depends on ROBOTS_POLICY (14.10).';
+
+/** The query parameter names, in the order they are appended, so one profile yields one URL. */
+const QUERY_PARAMS = {
+  /** Keyword query; carries the title synonyms as an OR expression. */
+  keywords: 'q',
+  /** Search radius around the place of the path, in kilometres. */
+  radius: 'radius',
+  /** Posting age bucket, as `age_<days>`. */
+  age: 'ag',
+  /** Contract type. */
+  contractType: 'ct',
+  /** 1-based Result_Page number. */
+  page: 'page',
+} as const;
 
 /**
- * The query parameter names. Exactly one, and `q` is the one the robots.txt of this Platform allows;
- * see {@link STEPSTONE_RESULT_PAGE_LIMIT} for the measurement and for what the others cost.
+ * The radius values Stepstone's radius selector offers, in kilometres, ascending.
+ *
+ * A Search_Profile may name any integer from 1 to 200 (3.5), so a value between two steps is raised to
+ * the next larger step rather than lowered: a smaller radius would drop Job_Posting the user asked for,
+ * while a larger one only adds postings further away, which the Commute_Service then rates (8.1).
  */
-const QUERY_PARAMS = {
-  /** Keyword query; carries the title synonyms as an OR expression. The only permitted parameter. */
-  keywords: 'q',
-} as const;
+export const STEPSTONE_RADIUS_STEPS_KM = [0, 5, 10, 20, 30, 50, 100] as const;
+
+/**
+ * The posting-age buckets Stepstone's date filter offers, in days, ascending.
+ *
+ * Same direction of rounding and the same reason: `publicationPeriodDays` of 10 becomes the 14-day
+ * bucket, which includes everything from the last 10 days. A period above the largest bucket drops the
+ * filter entirely, since "older than 30 days as well" is what no filter means.
+ */
+export const STEPSTONE_AGE_BUCKETS_DAYS = [1, 3, 7, 14, 30] as const;
+
+/**
+ * How an {@link EmploymentType} reaches Stepstone's contract-type filter.
+ *
+ * `ANY` maps to `null`, which omits the parameter: asking for every contract type *is* the unfiltered
+ * result list, and sending a value for it would risk excluding postings that state no contract type.
+ */
+export const STEPSTONE_CONTRACT_TYPES: Readonly<Record<EmploymentType, string | null>> = {
+  PERMANENT: 'permanent',
+  TEMPORARY: 'temporary',
+  CONTRACT: 'contract',
+  ANY: null,
+};
+
+/** The value of `value` raised to the smallest entry of `steps` that is at least as large. */
+function raiseToStep(value: number, steps: readonly number[]): number | null {
+  const step = steps.find((candidate) => candidate >= value);
+
+  return step ?? null;
+}
 
 /** German umlauts and the sharp s, which Stepstone's own slugs transliterate rather than strip. */
 const TRANSLITERATIONS: ReadonlyArray<readonly [RegExp, string]> = [
@@ -195,6 +239,9 @@ export function stepstoneResultListUrl(
   const jobTitle = requiredCriterionValue(profile, 'jobTitle');
   const searchLocation = requiredCriterionValue(profile, 'searchLocation');
   const titleSynonyms = criterionValue(profile, 'titleSynonyms');
+  const searchRadiusKm = criterionValue(profile, 'searchRadiusKm');
+  const employmentType = criterionValue(profile, 'employmentType');
+  const publicationPeriodDays = criterionValue(profile, 'publicationPeriodDays');
 
   const titleSlug = stepstoneSlug(jobTitle);
   const locationSlug = stepstoneSlug(searchLocation);
@@ -210,12 +257,39 @@ export function stepstoneResultListUrl(
     STEPSTONE_ORIGIN,
   );
 
-  // `q` only, and only where it adds something: a `q` repeating the path's title slug states nothing
-  // the path does not already carry, and the bare path is the shape with the widest permission.
-  // `pageNumber` reaches no parameter at all — see {@link STEPSTONE_RESULT_PAGE_LIMIT} — so every
-  // page number yields the same permitted URL and the adapter requests it exactly once.
   if (titleSynonyms !== undefined && titleSynonyms.length > 0) {
     url.searchParams.set(QUERY_PARAMS.keywords, stepstoneKeywordQuery(jobTitle, titleSynonyms));
+  }
+
+  if (searchRadiusKm !== undefined) {
+    const step = raiseToStep(searchRadiusKm, STEPSTONE_RADIUS_STEPS_KM);
+
+    // A radius above the largest step is left out rather than capped: capping would quietly search a
+    // smaller area than the Search_Profile asks for, while no radius parameter searches nationwide,
+    // which is the closer reading of "200 km around Munich" on a German-only job board.
+    if (step !== null) {
+      url.searchParams.set(QUERY_PARAMS.radius, String(step));
+    }
+  }
+
+  if (publicationPeriodDays !== undefined) {
+    const bucket = raiseToStep(publicationPeriodDays, STEPSTONE_AGE_BUCKETS_DAYS);
+
+    if (bucket !== null) {
+      url.searchParams.set(QUERY_PARAMS.age, `age_${String(bucket)}`);
+    }
+  }
+
+  if (employmentType !== undefined) {
+    const contractType = STEPSTONE_CONTRACT_TYPES[employmentType];
+
+    if (contractType !== null) {
+      url.searchParams.set(QUERY_PARAMS.contractType, contractType);
+    }
+  }
+
+  if (pageNumber > 1) {
+    url.searchParams.set(QUERY_PARAMS.page, String(pageNumber));
   }
 
   return url.toString();

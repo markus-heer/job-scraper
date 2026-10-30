@@ -69,7 +69,6 @@ import {
   PlatformQueue,
 } from '../../../scheduling/platform-queue.js';
 import { IndeedAdapter } from '../index.js';
-import { INDEED_RESULT_PAGE_LIMIT } from '../result-list-url.js';
 
 /** The effective Search_Profile of Indeed as the Job_Tool ships it (3.1, 4.3). */
 const PROFILE: EffectiveSearchProfile = (() => {
@@ -225,26 +224,36 @@ describe.each(REQUIRED_FIXTURE_CASES)('a retrieval of the single Result_Page %s'
   });
 });
 
-describe('the retrieval scope of this Platform: one Result_Page (13.3, 14.2)', () => {
-  it('reads one page and asks for no second one, whatever budget it is handed', async () => {
+describe('the retrieval scope of this Platform (13.3, 13.10)', () => {
+  it('pages to the end of the stored result list, whatever budget it is handed', async () => {
     server = await FixtureServer.start({
       routes: pageRoutes(['result-list-page-1', 'result-list-page-2']),
     });
 
     const factory = createFixturePageFactory({ origin: server.origin, timeoutMs: 2000 });
-    const { context, events } = contextFor(factory.openPage, { pageBudget: 50 });
+    const { context, events } = contextFor(factory.openPage, {
+      pageBudget: RESULT_PAGE_BUDGET * 10,
+    });
 
     const result = await adapter.fetch(context);
 
-    // The second route is registered and would answer; the adapter never asks for it, because the only
-    // URL that could address it carries the `start=` parameter the robots.txt of the Platform forbids.
-    expect(result.pagesFetched).toBe(INDEED_RESULT_PAGE_LIMIT);
-    expect(targetsOf(server)).toEqual([routeOf(1)]);
-    expect(result.platformStatus).toBe('PAGE_LIMIT_REACHED');
-    expect(events.at(-1)?.code).toBe('platform.pageLimit');
+    // This adapter used to stop after page 1, because `Disallow: /*&start=` forbids the only
+    // parameter that can address a second Result_Page of this Platform. That prohibition is still
+    // evaluated and reported per Scrape_Run (14.12) but no longer gates, under the configured
+    // Robots_Policy of 14.10 — so the walk runs to the end of the result list (13.3).
+    //
+    // Two things this does *not* establish, both recorded in `docs/adapters/indeed.md`: that
+    // `start=` is implemented (it is not — the URL carries the repository's `page` convention, which
+    // the real Indeed ignores), and that the Platform answers at all. It is deactivated in
+    // `PLATFORM_ACTIVATION` because de.indeed.com answers the honest user agent with HTTP 403 and a
+    // Cloudflare check, which is an access control rather than a convention.
+    expect(result.pagesFetched).toBe(2);
+    expect(targetsOf(server)).toEqual([routeOf(1), routeOf(2)]);
+    expect(result.platformStatus).toBe('COMPLETED');
+    expect(events.at(-1)?.code).toBe('platform.resultListComplete');
   });
 
-  it('keeps the Job_Posting of the page it did read, as the Partial_Result of 7.7', async () => {
+  it('keeps the Job_Posting of every page it read', async () => {
     server = await FixtureServer.start({
       routes: pageRoutes(['result-list-page-1', 'result-list-page-2']),
     });
@@ -254,10 +263,10 @@ describe('the retrieval scope of this Platform: one Result_Page (13.3, 14.2)', (
 
     const result = await adapter.fetch(context);
 
-    // The Indeed case of 7.7, and the usual one rather than the exotic one: the result list was not
-    // read to its end, so the result is incomplete and carries everything that was read.
-    expect(result.partialResult).toBe(true);
-    expect(result.postings).toHaveLength(FIRST_PAGE_POSTINGS);
+    // The stored page 2 offers no further page, so the result list was read to its end and this is
+    // no Partial_Result (7.7). The postings of both pages are kept.
+    expect(result.partialResult).toBe(false);
+    expect(result.postings.length).toBeGreaterThan(FIRST_PAGE_POSTINGS);
   });
 
   it('reports a complete result list where the one page offers no further one', async () => {
@@ -331,12 +340,14 @@ describe('the pacing of a page request (13.2, 13.4)', () => {
 
     const result = await adapter.fetch(contextFor(factory.openPage).context);
 
-    expect(result.pagesFetched).toBe(1);
-    // A retrieval of this Platform makes one request, so there is no second Result_Page for a gap to
-    // sit in front of. What is asserted is that the request went through the real queue with the real
-    // minimum in force, and that nothing was waited before the first request of the Scrape_Run.
+    // One route is served, and the stored page offers a further one, so the adapter asks for a
+    // second — which the single-route server answers with its overflow document. What is asserted is
+    // that every request went through the real queue with the real minimum in force, and that
+    // nothing was waited before the *first* request of the Scrape_Run.
+    expect(result.pagesFetched).toBeGreaterThanOrEqual(1);
     expect(queue.minDelayMs).toBe(MIN_REQUEST_GAP_MS);
-    expect(waits).toEqual([]);
+    expect(waits.every((wait) => wait >= MIN_REQUEST_GAP_MS)).toBe(true);
+    expect(waits).toHaveLength(result.pagesFetched - 1);
   });
 
   it('waits at least two seconds before repeating a page request that did not answer', async () => {

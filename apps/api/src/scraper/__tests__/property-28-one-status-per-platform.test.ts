@@ -292,7 +292,7 @@ const runScrape = async (plan: RunPlan) => {
     new PostingRepository(postings.store),
     results.store,
     log.log,
-    { userAgentContact: 'kontakt@example.com' },
+    { userAgentContact: 'kontakt@example.com', robotsPolicy: 'respect' },
     registry,
     runtime.runtime,
   );

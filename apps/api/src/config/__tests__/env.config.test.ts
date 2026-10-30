@@ -34,7 +34,7 @@ import { envWith, SECRET_VALUES, VALID_ENV } from './env-source.fixture';
 /** A path that cannot exist, so the loader reports "file not found" and mutates nothing. */
 const ABSENT_ENV_FILE = join(__dirname, 'this-file-does-not-exist.env');
 
-/** Puts exactly the 14 required keys into `process.env`; `undefined` removes a key. */
+/** Puts exactly the 15 required keys into `process.env`; `undefined` removes a key. */
 const applyEnv = (source: EnvSource): void => {
   for (const key of REQUIRED_ENV_KEYS) {
     vi.stubEnv(key, source[key]);

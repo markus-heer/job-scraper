@@ -71,7 +71,7 @@ container registry and no CI-driven release of the application itself.
   AI_Provider requests leave the machine by design. Only the data and the services stay
   here.
 - **Configuration.** Copy `.env.example` to `.env` and fill it in. `.env` is never
-  committed. All 14 keys in `REQUIRED_ENV_KEYS`
+  committed. All 15 keys in `REQUIRED_ENV_KEYS`
   (`apps/api/src/config/env.schema.ts`) are required: a missing or empty one stops the
   start and is reported by name. `POSTGRES_PORT` is read by `docker-compose.yml` only, and
   `SCRAPER_FIXTURE_MODE` is the E2E test switch, which is the one key the API_Service reads

@@ -29,6 +29,7 @@ import {
   failureLogEntry,
   type JobToolFailure,
   mapFailure,
+  robotsIgnoredLogEntry,
 } from '../common/error-mapping';
 import { ENV_CONFIG } from '../config/env.config';
 import type { EnvConfig } from '../config/env.schema';
@@ -62,8 +63,11 @@ export const ADAPTER_REGISTRY = Symbol('ADAPTER_REGISTRY');
 /** The part of the Posting_Store client this service writes the per-Platform result rows through. */
 export type PlatformResultStore = Pick<PrismaService, 'scrapeRunPlatformResult'>;
 
-/** The part of the configuration this service needs: the contact detail of the user agent (14.5). */
-export type ScraperEnv = Pick<EnvConfig, 'userAgentContact'>;
+/**
+ * The part of the configuration this service needs: the contact detail of the user agent (14.5) and
+ * the Robots_Policy that decides whether a robots.txt prohibition stops a retrieval (14.10).
+ */
+export type ScraperEnv = Pick<EnvConfig, 'userAgentContact' | 'robotsPolicy'>;
 
 /**
  * What one Platform produced in one Scrape_Run (7.4, 12.3, 12.10).
@@ -620,9 +624,16 @@ export class ScraperService {
   /**
    * Evaluates the robots.txt of one Platform before its first page request (14.1).
    *
-   * @returns Whether the retrieval may proceed, with the stated crawl-delay. A forbidden intended
-   *   path (14.2) and a robots.txt that could not be evaluated (14.3) close the Platform with their
-   *   own Platform_Status and no page request at all.
+   * **The retrieval and the evaluation happen under both Robots_Policy values** (14.1), and so does
+   * applying a stated `Crawl-delay` (14.4). The policy decides one thing only: whether a prohibition
+   * *stops* the retrieval. That split is deliberate — the crawl-delay is politeness that costs the
+   * user nothing and lowers the chance of being rate-limited, and the evaluation is the information
+   * the Log_View needs either way.
+   *
+   * @returns Whether the retrieval may proceed, with the stated crawl-delay. Under the
+   *   `respect` policy a forbidden intended path (14.2) and a robots.txt that could not be evaluated
+   *   (14.3) close the Platform with their own Platform_Status and no page request at all; under
+   *   `ignore` the same two cases proceed and are reported as a warning instead (14.11, 14.12).
    */
   private async evaluateRobots(
     context: RetrievalContext,
@@ -640,6 +651,15 @@ export class ScraperService {
     const status = robotsPlatformStatus(decision);
 
     if (status === null) {
+      return { proceed: true, crawlDelaySeconds: decision.crawlDelaySeconds };
+    }
+
+    // 14.11 and 14.12: the prohibition stands, the Job_Tool proceeds anyway, and the user reads
+    // that it did. Not silent, because a retrieval the robots.txt of a Platform asks not to happen
+    // is something the person who started the Scrape_Run should see in the Log_View.
+    if (this.env.robotsPolicy === 'ignore') {
+      await context.log.write(robotsIgnoredLogEntry(platform, status, decision.disallowedPaths));
+
       return { proceed: true, crawlDelaySeconds: decision.crawlDelaySeconds };
     }
 

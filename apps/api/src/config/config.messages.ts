@@ -38,9 +38,12 @@ export const ENV_KEY_EXPECTATIONS_DE: Readonly<Record<EnvKeyName, string>> = {
   ANTHROPIC_MODEL: 'nicht leer, höchstens 100 Zeichen',
   RELEVANCE_ENABLED: 'entweder "true" oder "false"',
   RELEVANCE_CONCURRENCY: 'ganze Zahl von 1 bis 16',
-  RELEVANCE_MAX_PER_RUN: 'ganze Zahl von 1 bis 1000',
+  RELEVANCE_MAX_PER_RUN: 'ganze Zahl von 1 bis 20000',
   ENRICHMENT_GRACE_MINUTES: 'ganze Zahl von 1 bis 120 (Minuten)',
   USER_AGENT_CONTACT: 'nicht leer, Kontaktangabe wie eine E-Mail-Adresse',
+  // 14.10: genau einer der beiden Werte. "respect" schließt eine Plattform aus, deren robots.txt
+  // den Abruf untersagt; "ignore" ruft trotzdem ab und meldet die Untersagung als Warnung.
+  ROBOTS_POLICY: 'entweder "respect" oder "ignore"',
   API_PORT: 'ganze Zahl von 1024 bis 65535',
   WEB_PORT: 'ganze Zahl von 1024 bis 65535',
   SCRAPER_FIXTURE_MODE:

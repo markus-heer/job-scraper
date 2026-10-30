@@ -125,7 +125,14 @@ export interface RuntimeBrowser {
   close(): Promise<void>;
 }
 
-/** The launch options the runtime sets. Headless is not negotiable: no Scrape_Run shows a window. */
+/**
+ * The launch options the runtime sets.
+ *
+ * `headless: false` is the production value since 14.13: the Scrape_Run shows its window, because
+ * the single user starts each run by hand at this machine and 14.13 asks them to be able to watch it
+ * and to end it by closing the window. An earlier revision launched headless and called it
+ * non-negotiable; that was a decision about an unattended crawler, which this is not.
+ */
 export interface RuntimeLaunchOptions {
   readonly headless?: boolean;
 }
